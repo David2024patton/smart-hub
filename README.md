@@ -2,7 +2,7 @@
 
 A state-of-the-art, zero-config local runtime designed to unify disparate AI agents, client IDEs, and heavy-compute layers into a single, cohesive, self-improving cognitive engine. 
 
-Smart Hub compiles **6 Core Engines directly into its runtime framework**, eliminating dynamic configuration loops and granting connecting LLMs 100% absolute control of the host machine's desktop, terminals, file vectors, and webcam vision feeds.
+Smart Hub compiles **all core capabilities directly into its codebase**, eliminating dynamic configuration loops and granting connecting LLMs 100% absolute control of the host machine's desktop, terminals, file vectors, and webcam vision feeds.
 
 ---
 
@@ -16,10 +16,11 @@ graph TD
 
     subgraph Sovereign Gateway Security
         SSE & STDIO & Tunnel -->|JWT & Signed Cookies| Gateway[Gateway Auth Firewall]
+        Gateway -->|Prompt & Unicode Scans| Shield[Sovereign Shield Firewall]
     end
 
     subgraph Smart Hub Native Engine
-        Gateway --> Server[Express & SSE Server]
+        Shield --> Server[Express & SSE Server]
         
         subgraph Built-in Core Features
             Server --> CoDriver[co-driver: OSWorld & Webcam Vision]
@@ -28,13 +29,16 @@ graph TD
             Server --> FS[filesystem: Diff-Based Editor]
             Server --> Logic[sequential-thinking: Reason Sandbox]
             Server --> Docs[context7: Grounded Offline Docs]
+            Server --> ShieldEngine[Sovereign Shield: Inject & DLP Guard]
+            Server --> Market[Marketplace: LobeHub-Compatible App Store]
+            Server --> Tasks[Kanban Board: ClickUp-Style Project Board]
         end
         
         subgraph Cognitive & Memory Layer
             Logic --> SQLite[(SQLite & FTS5 Index)]
-            SQLite --> Hermes[Hermes Closed learning Loop]
-            SQLite --> Honcho[Honcho Dialectic User Modeling]
-            SQLite --> Research[Deep Research Trajectory Engine]
+            SQLite --> SkillLoop[Self-Improving Skill & Memory Loop]
+            SQLite --> Dialectic[Dialectic User & Concept Modeling]
+            SQLite --> Research[Trajectory Dataset Capture Engine]
         end
     end
 
@@ -47,38 +51,65 @@ graph TD
 
 ---
 
-## ⚡ Built-in Core Features (Zero-Config Framework)
+## ⚡ Core Features of the Smart Hub
 
-Unlike legacy aggregators that spawn external, brittle processes, Smart Hub compiles these core capabilities directly into its unified codebase. When launched, these features function instantly:
+Smart Hub is engineered as a single, compiled server executable. Once launched, these built-in features function instantly, requiring zero external server setup or NPM installations.
 
-| Built-in Feature | Capability | System Mastery |
-| :--- | :--- | :--- |
-| **`co-driver`** | Native OSWorld-style visual control & mouse/keyboard automation. | Real-time **Webcam Video Feed** capture for multi-modal sensing. |
-| **`smart-terminal`** | Persistent terminal piping with absolute shell abstraction. | 100% shell control over **PowerShell**, **cmd**, **bash**, **WSL (Ubuntu)**, and Android **Termux**. |
-| **`chrome-devtools`** | Headless/headful remote browser devtools pipelines. | Full programmatic DOM control, element clicking, typing, and page capturing. |
-| **`filesystem`** | Strict, block-level **Diff-Based file editing** system. | Eliminates god-file overwrites, preventing token-inflation and saving 90% in bills. |
-| **`sequential-thinking`** | Dynamic, high-fidelity recursive reasoning sandbox. | Direct SQLite tracing, storing exact logical paths for cross-session diagnostic audits. |
-| **`context7`** | Grounded, version-specific offline technical library parser. | Supplies immediate local documentation, eliminating agent hallucinations. |
+### 🎥 1. `co-driver` Visual OS Control
+*   **OSWorld Physical Automation:** Native, low-latency API wrappers to programmatically control the host operating system's mouse, keyboard, coordinates, and visual layout.
+*   **Webcam Vision Stream:** Dynamic webcam integration that captures real-time video frames and environmental vision feeds, supplying connecting multimodal LLMs with high-fidelity visual context.
 
----
+### 💻 2. `smart-terminal` Multi-Shell pipe
+*   **Universal Shell Abstraction:** Establishes direct, high-performance terminal pipes across operating systems. 
+*   **Persistent Shell Support:** Native control over **PowerShell**, **cmd**, **bash**, **WSL (Ubuntu)**, macOS **zsh**, and Android **Termux** in the background.
+*   **Workspace Substitution:** Dynamic workspace root substitution, automatically replacing relative paths with project workspace roots (`%BASE_DIR%`).
 
-## 🧠 Cognitive Architecture & Learning Loops
+### 🌐 3. `chrome-devtools` Browser Automation
+*   **DevTools Programmatic Browser:** Programmatically spawns headless and headful Chromium browser instances using local devtools protocols.
+*   **High-Performance Scrapers:** Exposes native tools to select, click, fill forms, extract text, scrape dynamic SPA sites, and capture screenshots in sub-second latency cycles.
 
-Smart Hub embeds cutting-edge open-source memory frameworks to give your AI agents stateful continuity:
+### 📝 4. `filesystem` Diff-Based Editing
+*   **Block-Level Diff Editor:** Enforces strict, block-level target replacements when modifying codebases instead of rewriting entire files.
+*   **Massive Cost Reductions:** Prevents prompt-inflation, preserves all unrelated comments/docstrings, and cuts LLM context token consumption by up to 90%.
 
-### 1. Hermes Closed-Loop Learning Engine
-*   **Agent-Curated Memory & Nudges:** Automatic background cron triggers issue periodic reflective memory nudges, distilling raw action logs.
-*   **Autonomous Skill Creation:** Programmatically synthesizes custom, reusable `SKILL.md` documents directly in your workspace at the end of complex tasks (fully compatible with the **agentskills.io** open standard).
-*   **Skills Self-Improvement:** Custom skills dynamically self-refine their instruction files based on structural success/failure traces recorded in the database.
+### 🧠 5. `sequential-thinking` Reasoning Sandbox
+*   **High-Fidelity Thinking Space:** Implements a dynamic, recursive reasoning engine letting agents think mathematically and procedurally in structured sandbox loops.
+*   **Persistent Traces:** Commits every reasoning trajectory to SQLite, creating complete diagnostic traces that survive system reboots for cross-session debugging.
+
+### 📚 6. `context7` Grounded Offline Docs
+*   **Version-Specific Document Parser:** Built-in offline technical document indexing server that grounds connecting agents in version-specific library documentations.
+*   **Hallucination Prevention:** Instantly supplies accurate, local API schemas and structures, completely cutting out code hallucination loops.
+
+### 🛡️ 7. `Sovereign Shield` Prompt Injection & DLP Security
+*   **Prompt Injection Defense:** Instantly detects and blocks 10 categories of prompt injection attacks across 5 adjustable severity levels.
+*   **External Source Escalation:** Implements strict data security boundaries—content fetched from URLs, webhooks, or emails is placed in isolated, untrusted wrappers, preventing it from being treated as direct system instructions.
+*   **Jailbreak Detection:** Proactively intercepts DAN modes, developer mode overrides, and system-prompt extraction exploits.
+*   **Secret Exfiltration Guard:** Dynamically scans outgoing agent responses, blocking accidental leaks of credentials, private keys, passwords, or JWTs.
+*   **Unicode Obfuscation Guard:** Automatically catches zero-width characters and obfuscated payloads designed to bypass standard safety text filters.
+
+### 🔄 8. Self-Improving Skill & Memory Loop
+*   **Agent-Curated Memory & Nudges:** Set up background cron triggers to run periodic reflective summaries over raw terminal and database activity logs.
+*   **Autonomous Skill Creation:** Programmatically synthesizes custom, reusable `SKILL.md` documents directly in your workspace at the end of complex, successful tasks.
+*   **Skills Self-Refinement:** Built-in skills dynamically self-refine their instruction files based on structural success/failure traces recorded in the database.
 *   **FTS5 Session Search:** Leverages a high-performance **SQLite FTS5 index** for instantaneous text-search and summarizations of past cognitive paths.
 
-### 2. Honcho Dialectic User Modeling
-*   Tracks and reasons about changing relationships between people, agents, active projects, and concepts over time.
-*   Runs background dialectic modeling engines to let agents query peer representations and retrieve natural-language user constraints.
+### 👥 9. Dialectic User & Concept Modeling
+*   **Dynamic Relational Graphing:** Tracks and reasons about changing relationships between people, agents, active projects, and core concepts over time.
+*   **Insight Engine:** Runs background dialectic modeling engines to let agents query representations and retrieve natural-language user constraints.
 
-### 3. Deep Research Trajectory Engine
+### 📊 10. Trajectory Dataset Capture Engine
 *   **Batch Trajectory Capture:** Structured tracking of every step-by-step tool call, input, and output.
 *   **Trajectory Compression:** Compacts execution trajectories and exports them as clean **JSON Lines datasets**, supplying perfect training data to fine-tune future local tool-calling models.
+
+### 🏪 11. LobeHub-Compatible Marketplace
+*   **Visual App Store:** A responsive visual grid built into the dashboard letting users search, filter, and preview community-curated assets.
+*   **1-Click Direct Install:** Direct `[Install]` button to instantly parse and import selected agent personas or plugins (MCPs) directly into your local database.
+*   **Creator Details:** Displays the asset's Name, Description, and the GitHub username of the creator (linked directly back to their GitHub profile).
+*   **Support & Give Stars:** A prominent `[Give Stars]` button that deep-links directly back to the creator's GitHub repository or user section, allowing users to easily support their work.
+
+### 📋 12. Interactive Kanban Task Board
+*   **SQLite-Backed Checklist Dashboard:** A ClickUp-style visual dashboard displaying nested projects, tasks, and subtasks across Kanban columns (`Todo`, `In Progress`, `In Review`, `Done`).
+*   **State Continuity APIs:** Exposes robust task operations to connecting LLMs, allowing agents to automatically inspect, plan, build, and update the task board as they execute goals.
 
 ---
 
@@ -134,7 +165,7 @@ To configure remote backups securely without committing keys:
     ```markdown
     * **GitHub PAT**: github_pat_YOUR_TOKEN_HERE
     ```
-3.  The backend server automatically loads this token into `process.env.GITHUB_PAT` to authorize git pushes securely, keeping the token 100% hidden from codebase versions.
+3.  The server automatically loads this token into `process.env.GITHUB_PAT` to authorize git pushes securely, keeping the token 100% hidden from codebase versions.
 
 ---
 
