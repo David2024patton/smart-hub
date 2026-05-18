@@ -21,7 +21,7 @@ graph TD
     subgraph Smart Hub Native Engine
         Gateway --> Server[Express & SSE Server]
         
-        subgraph Compiled Core Services
+        subgraph Built-in Core Features
             Server --> CoDriver[co-driver: OSWorld & Webcam Vision]
             Server --> Terminal[smart-terminal: Powershell/WSL/Termux]
             Server --> DevTools[chrome-devtools: Remote Browser]
@@ -47,11 +47,11 @@ graph TD
 
 ---
 
-## ⚡ Compiled Core Engines (Zero-Config Framework)
+## ⚡ Built-in Core Features (Zero-Config Framework)
 
-Unlike legacy MCP aggregators that spawn external, brittle processes, Smart Hub compiles its core capabilities directly into the Node.js server. When launched, these services function instantly:
+Unlike legacy aggregators that spawn external, brittle processes, Smart Hub compiles these core capabilities directly into its unified codebase. When launched, these features function instantly:
 
-| Core Service | Capability | System Mastery |
+| Built-in Feature | Capability | System Mastery |
 | :--- | :--- | :--- |
 | **`co-driver`** | Native OSWorld-style visual control & mouse/keyboard automation. | Real-time **Webcam Video Feed** capture for multi-modal sensing. |
 | **`smart-terminal`** | Persistent terminal piping with absolute shell abstraction. | 100% shell control over **PowerShell**, **cmd**, **bash**, **WSL (Ubuntu)**, and Android **Termux**. |
