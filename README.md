@@ -30,7 +30,7 @@ graph TD
             Server --> Logic[sequential-thinking: Reason Sandbox]
             Server --> Docs[context7: Grounded Offline Docs]
             Server --> ShieldEngine[Sovereign Shield: Inject & DLP Guard]
-            Server --> Market[Marketplace: LobeHub-Compatible App Store]
+            Server --> Market[Marketplace: Unified Asset App Store]
             Server --> Tasks[Kanban Board: ClickUp-Style Project Board]
         end
         
@@ -101,7 +101,7 @@ Smart Hub is engineered as a single, compiled server executable. Once launched, 
 *   **Batch Trajectory Capture:** Structured tracking of every step-by-step tool call, input, and output.
 *   **Trajectory Compression:** Compacts execution trajectories and exports them as clean **JSON Lines datasets**, supplying perfect training data to fine-tune future local tool-calling models.
 
-### 🏪 11. LobeHub-Compatible Marketplace
+### 🏪 11. Built-in Asset Marketplace
 *   **Visual App Store:** A responsive visual grid built into the dashboard letting users search, filter, and preview community-curated assets.
 *   **1-Click Direct Install:** Direct `[Install]` button to instantly parse and import selected agent personas or plugins (MCPs) directly into your local database.
 *   **Creator Details:** Displays the asset's Name, Description, and the GitHub username of the creator (linked directly back to their GitHub profile).
