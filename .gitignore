@@ -1,0 +1,57 @@
+# Dependencies
+node_modules/
+src-tauri/target/
+target/
+
+# Build outputs
+dist/
+src-tauri/gen/
+*.d.ts
+
+# Environment & Secrets
+.env
+.env.local
+.env*.local
+*.key
+*.pem
+*.crt
+
+# OS Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+logs/*.log
+logs/*.log.*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Testing
+coverage/
+*.lcov
+
+# Tauri development
+*.app
+*.dmg
+*.msi
+*.exe
+*.AppImage
+
+# Database (local dev)
+*.sqlite
+*.sqlite3
+pg_data/
+
+# IDE specific
+*.iml
+*.ipr
+*.iws

@@ -1,0 +1,102 @@
+{
+  "build": {
+    "beforeBuildCommand": "npm run build",
+    "beforeDevCommand": "npm run dev",
+    "devPath": "http://localhost:1420",
+    "distDir": "../dist"
+  },
+  "package": {
+    "productName": "Smart Hub",
+    "version": "0.1.0"
+  },
+  "tauri": {
+    "allowlist": {
+      "all": false,
+      "shell": {
+        "all": true,
+        "execute": true,
+        "open": true,
+        "sidecar": true,
+        "scope": [
+          {
+            "name": "allowed-command",
+            "cmd": "*",
+            "args": true
+          }
+        ]
+      },
+      "fs": {
+        "all": true,
+        "scope": ["$HOME/**", "$APPDATA/**", "$CONFIG/**"]
+      },
+      "path": {
+        "all": true
+      },
+      "process": {
+        "all": true
+      },
+      "window": {
+        "all": true
+      },
+      "dialog": {
+        "all": true
+      }
+    },
+    "bundle": {
+      "active": true,
+      "targets": "all",
+      "identifier": "com.smarthub.orchestrator",
+      "icon": [
+        "icons/32x32.png",
+        "icons/128x128.png",
+        "icons/128x128@2x.png",
+        "icons/icon.icns",
+        "icons/icon.ico"
+      ],
+      "resources": [],
+      "externalBin": [],
+      "copyright": "© 2026 Smart Hub Project",
+      "category": "DeveloperTool",
+      "shortDescription": "Sovereign AI Orchestration OS",
+      "longDescription": "A unified, self-improving cognitive workspace designed to compile all core systems into a high-performance cross-platform application.",
+      "deb": {
+        "depends": []
+      },
+      "macOS": {
+        "frameworks": [],
+        "minimumSystemVersion": "10.13",
+        "exceptionDomain": "",
+        "signingIdentity": null,
+        "entitlements": null
+      },
+      "windows": {
+        "certificateThumbprint": null,
+        "digestAlgorithm": "sha256",
+        "timestampUrl": "",
+        "webviewInstallMode": {
+          "type": "embedBootstrapper"
+        }
+      }
+    },
+    "security": {
+      "csp": "default-src 'self'; connect-src ipc: http://localhost:1420; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self'; script-src 'self' 'unsafe-eval'"
+    },
+    "windows": [
+      {
+        "title": "Smart Hub",
+        "width": 1400,
+        "height": 900,
+        "minWidth": 1024,
+        "minHeight": 768,
+        "resizable": true,
+        "fullscreen": false,
+        "decorations": true,
+        "transparent": false,
+        "center": true
+      }
+    ],
+    "updater": {
+      "active": false
+    }
+  }
+}

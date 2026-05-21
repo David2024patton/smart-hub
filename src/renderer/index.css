@@ -1,0 +1,588 @@
+@import 'tailwindcss';
+
+/* ============================================
+   SMART HUB | Sovereign Design System v2.0
+   Phase 0.1: Premium Dark Interface
+   ============================================ */
+
+/* Google Fonts are loaded in index.html */
+
+:root {
+  /* Deep Space Palette */
+  --bg-void: #06080f;
+  --bg-deep: #0a0e1a;
+  --bg-surface: #111827;
+  --bg-elevated: #1a2236;
+  --bg-card: rgba(17, 24, 39, 0.65);
+
+  /* Glass System */
+  --glass-border: rgba(255, 255, 255, 0.06);
+  --glass-border-hover: rgba(255, 255, 255, 0.12);
+  --glass-shine: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, transparent 50%);
+
+  /* Accent Palette: shifted from pure emerald to a richer teal-emerald */
+  --accent: hsl(160, 84%, 39%);
+  --accent-glow: hsla(160, 84%, 39%, 0.35);
+  --accent-subtle: hsla(160, 84%, 39%, 0.08);
+  --accent-muted: hsla(160, 84%, 39%, 0.15);
+
+  /* Secondary Accents */
+  --blue: hsl(217, 91%, 60%);
+  --blue-glow: hsla(217, 91%, 60%, 0.3);
+  --violet: hsl(262, 83%, 58%);
+  --violet-glow: hsla(262, 83%, 58%, 0.3);
+  --amber: hsl(38, 92%, 50%);
+  --amber-glow: hsla(38, 92%, 50%, 0.3);
+  --rose: hsl(350, 89%, 60%);
+  --rose-glow: hsla(350, 89%, 60%, 0.3);
+
+  /* Text Hierarchy */
+  --text-primary: hsl(210, 40%, 98%);
+  --text-secondary: hsl(215, 20%, 65%);
+  --text-muted: hsl(215, 15%, 45%);
+  --text-ghost: hsl(215, 10%, 30%);
+
+  /* Typography */
+  --font-display: 'Outfit', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  /* Radii */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+
+  /* Shadows */
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-glow: 0 0 40px var(--accent-glow);
+  --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+/* ============================================
+   BASE LAYER
+   ============================================ */
+@layer base {
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: var(--bg-void);
+    color: var(--text-primary);
+    font-family: var(--font-display);
+    line-height: 1.6;
+    overflow: hidden;
+  }
+
+  ::selection {
+    background: hsla(160, 84%, 39%, 0.3);
+    color: var(--text-primary);
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 99px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.15);
+  }
+}
+
+/* ============================================
+   GLASSMORPHISM SYSTEM
+   ============================================ */
+
+/* Core glass panel for sidebar/topbar */
+.glass-panel {
+  background: var(--bg-card);
+  backdrop-filter: blur(24px) saturate(1.2);
+  -webkit-backdrop-filter: blur(24px) saturate(1.2);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-inset);
+}
+
+/* Glass card with teal accent edge */
+.glass-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(20px) saturate(1.1);
+  -webkit-backdrop-filter: blur(20px) saturate(1.1);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card), var(--shadow-inset);
+  transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--glass-shine);
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.glass-card:hover {
+  border-color: var(--glass-border-hover);
+  transform: translateY(-3px);
+  box-shadow:
+    var(--shadow-card),
+    var(--shadow-inset),
+    0 0 30px rgba(0, 0, 0, 0.3);
+}
+
+/* Accent-bordered card variant */
+.glass-card-accent {
+  composes: glass-card;
+}
+.glass-card-accent:hover {
+  border-color: hsla(160, 84%, 39%, 0.25);
+  box-shadow:
+    var(--shadow-card),
+    0 0 40px var(--accent-glow);
+}
+
+/* ============================================
+   SIDEBAR
+   ============================================ */
+.sidebar {
+  background: linear-gradient(180deg, var(--bg-deep) 0%, var(--bg-void) 100%);
+  border-right: 1px solid var(--glass-border);
+  border-radius: 0;
+  position: relative;
+  z-index: 30;
+}
+
+.sidebar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 1px;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    hsla(160, 84%, 39%, 0.15) 30%,
+    hsla(160, 84%, 39%, 0.15) 70%,
+    transparent 100%
+  );
+}
+
+.sidebar-header {
+  border-bottom-color: var(--glass-border) !important;
+}
+
+.nav-item {
+  font-weight: 450;
+  font-size: 0.9rem;
+  letter-spacing: 0.01em;
+  border-radius: var(--radius-sm) !important;
+}
+
+.nav-item:not(:disabled):hover {
+  background: rgba(255, 255, 255, 0.04) !important;
+}
+
+/* ============================================
+   TOPBAR
+   ============================================ */
+.top-bar {
+  background: rgba(10, 14, 26, 0.75) !important;
+  backdrop-filter: blur(20px) saturate(1.3);
+  -webkit-backdrop-filter: blur(20px) saturate(1.3);
+  border-bottom: 1px solid var(--glass-border) !important;
+  border-radius: 0 !important;
+}
+
+/* ============================================
+   STAT CARD SYSTEM
+   ============================================ */
+.stat-card {
+  position: relative;
+  padding: 1.5rem;
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-card), var(--shadow-inset);
+  transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  overflow: hidden;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--glass-shine);
+  pointer-events: none;
+}
+
+/* Colored top-edge indicator bar */
+.stat-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--card-accent, var(--accent));
+  opacity: 0.6;
+  transition: opacity 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--glass-border-hover);
+}
+
+.stat-card:hover::after {
+  opacity: 1;
+}
+
+.stat-card .stat-value {
+  font-size: 2.5rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-card .stat-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 0.75rem;
+}
+
+.stat-card .stat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+/* Micro progress bar inside stat cards */
+.stat-bar-track {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 99px;
+  overflow: hidden;
+  margin-top: 1rem;
+}
+
+.stat-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Color variants for stat cards */
+.stat-card[data-color="teal"] {
+  --card-accent: var(--accent);
+}
+.stat-card[data-color="teal"] .stat-value { color: var(--accent); }
+.stat-card[data-color="teal"] .stat-icon { background: var(--accent-subtle); color: var(--accent); }
+.stat-card[data-color="teal"] .stat-bar-fill { background: linear-gradient(90deg, var(--accent), hsl(160, 84%, 55%)); }
+.stat-card[data-color="teal"]:hover { box-shadow: var(--shadow-card), 0 8px 40px var(--accent-glow); }
+
+.stat-card[data-color="amber"] {
+  --card-accent: var(--amber);
+}
+.stat-card[data-color="amber"] .stat-value { color: var(--amber); }
+.stat-card[data-color="amber"] .stat-icon { background: hsla(38, 92%, 50%, 0.08); color: var(--amber); }
+.stat-card[data-color="amber"] .stat-bar-fill { background: linear-gradient(90deg, var(--amber), hsl(38, 92%, 65%)); }
+.stat-card[data-color="amber"]:hover { box-shadow: var(--shadow-card), 0 8px 40px var(--amber-glow); }
+
+.stat-card[data-color="blue"] {
+  --card-accent: var(--blue);
+}
+.stat-card[data-color="blue"] .stat-value { color: var(--blue); }
+.stat-card[data-color="blue"] .stat-icon { background: hsla(217, 91%, 60%, 0.08); color: var(--blue); }
+.stat-card[data-color="blue"] .stat-bar-fill { background: linear-gradient(90deg, var(--blue), hsl(217, 91%, 72%)); }
+.stat-card[data-color="blue"]:hover { box-shadow: var(--shadow-card), 0 8px 40px var(--blue-glow); }
+
+.stat-card[data-color="violet"] {
+  --card-accent: var(--violet);
+}
+.stat-card[data-color="violet"] .stat-value { color: var(--violet); }
+.stat-card[data-color="violet"] .stat-icon { background: hsla(262, 83%, 58%, 0.08); color: var(--violet); }
+.stat-card[data-color="violet"] .stat-bar-fill { background: linear-gradient(90deg, var(--violet), hsl(262, 83%, 72%)); }
+.stat-card[data-color="violet"]:hover { box-shadow: var(--shadow-card), 0 8px 40px var(--violet-glow); }
+
+/* ============================================
+   ACTIVITY FEED
+   ============================================ */
+.activity-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  border-radius: var(--radius-sm);
+  transition: background 0.2s ease;
+  position: relative;
+}
+
+.activity-item:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.activity-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 6px;
+}
+
+.activity-line {
+  position: absolute;
+  left: 1.22rem;
+  top: 24px;
+  bottom: -12px;
+  width: 1px;
+  background: linear-gradient(180deg, var(--glass-border) 0%, transparent 100%);
+}
+
+/* ============================================
+   QUICK ACTIONS
+   ============================================ */
+.action-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.125rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  border: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.action-chip:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--glass-border-hover);
+  color: var(--text-primary);
+  transform: translateY(-1px);
+}
+
+.action-chip-primary {
+  background: var(--accent-subtle);
+  border-color: hsla(160, 84%, 39%, 0.2);
+  color: var(--accent);
+}
+
+.action-chip-primary:hover {
+  background: var(--accent-muted);
+  border-color: hsla(160, 84%, 39%, 0.35);
+  box-shadow: 0 4px 20px var(--accent-glow);
+}
+
+/* ============================================
+   MCP STATUS GRID
+   ============================================ */
+.mcp-node {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.625rem 0.875rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.015);
+  transition: all 0.2s ease;
+  font-size: 0.85rem;
+}
+
+.mcp-node:hover {
+  background: rgba(255, 255, 255, 0.035);
+  border-color: var(--glass-border-hover);
+}
+
+.mcp-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.mcp-dot-active {
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent-glow);
+}
+
+.mcp-dot-idle {
+  background: var(--text-muted);
+}
+
+.mcp-dot-error {
+  background: var(--rose);
+  box-shadow: 0 0 8px var(--rose-glow);
+}
+
+/* ============================================
+   HEALTH INDICATOR
+   ============================================ */
+.health-indicator {
+  font-size: 0.8rem !important;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+}
+
+/* ============================================
+   BUTTON SYSTEM
+   ============================================ */
+.glass-button {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+  color: var(--text-secondary);
+}
+
+.glass-button:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--glass-border-hover);
+  color: var(--text-primary);
+}
+
+.action-btn {
+  font-weight: 500;
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+  border-radius: var(--radius-sm) !important;
+}
+
+/* ============================================
+   SEMANTIC TOKENS (Tailwind overrides)
+   ============================================ */
+.text-primary { color: var(--text-primary) !important; }
+.text-secondary { color: var(--text-secondary) !important; }
+.text-muted { color: var(--text-muted) !important; }
+.text-success { color: var(--accent) !important; }
+.text-warning { color: var(--amber) !important; }
+.text-error { color: var(--rose) !important; }
+.bg-success { background-color: var(--accent) !important; }
+.bg-warning { background-color: var(--amber) !important; }
+.bg-error { background-color: var(--rose) !important; }
+.bg-deep { background-color: var(--bg-deep) !important; }
+
+/* ============================================
+   AMBIENT GLOW (background atmosphere)
+   ============================================ */
+.ambient-glow {
+  position: fixed;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.ambient-glow-tl {
+  top: -120px;
+  left: -80px;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, hsla(160, 84%, 39%, 0.04) 0%, transparent 70%);
+  filter: blur(60px);
+}
+
+.ambient-glow-br {
+  bottom: -200px;
+  right: -100px;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, hsla(217, 91%, 60%, 0.03) 0%, transparent 70%);
+  filter: blur(80px);
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 2.5s ease-in-out infinite;
+}
+
+/* Staggered children animation */
+.stagger-children > *:nth-child(1) { animation-delay: 0.05s; }
+.stagger-children > *:nth-child(2) { animation-delay: 0.1s; }
+.stagger-children > *:nth-child(3) { animation-delay: 0.15s; }
+.stagger-children > *:nth-child(4) { animation-delay: 0.2s; }
+.stagger-children > *:nth-child(5) { animation-delay: 0.25s; }
+.stagger-children > *:nth-child(6) { animation-delay: 0.3s; }
+
+/* ============================================
+   LIGHT THEME OVERRIDES
+   ============================================ */
+html.light-theme {
+  --bg-void: hsl(210, 20%, 97%);
+  --bg-deep: hsl(210, 20%, 95%);
+  --bg-surface: hsl(210, 20%, 92%);
+  --bg-elevated: hsl(0, 0%, 100%);
+  --bg-card: rgba(255, 255, 255, 0.75);
+  --glass-border: rgba(0, 0, 0, 0.06);
+  --glass-border-hover: rgba(0, 0, 0, 0.12);
+  --glass-shine: linear-gradient(135deg, rgba(255,255,255,0.5) 0%, transparent 50%);
+  --text-primary: hsl(210, 10%, 15%);
+  --text-secondary: hsl(215, 10%, 45%);
+  --text-muted: hsl(215, 10%, 60%);
+  --text-ghost: hsl(215, 8%, 80%);
+  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+html.light-theme body {
+  background-color: var(--bg-void);
+}
+
+html.light-theme .sidebar {
+  background: linear-gradient(180deg, var(--bg-elevated) 0%, var(--bg-deep) 100%);
+}
+
+html.light-theme .top-bar {
+  background: rgba(255, 255, 255, 0.8) !important;
+}
