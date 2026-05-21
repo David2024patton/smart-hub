@@ -71,7 +71,7 @@ graph LR
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/smart-hub.git
+git clone https://github.com/David2024patton/smart-hub.git
 cd smart-hub/001
 
 # Install frontend dependencies
@@ -209,7 +209,6 @@ After each phase completion, developers **must**:
 ## 📚 Documentation
 
 - [Phase 0 Documentation](./logs/phase_0_documentation.md) - UI/UX Design System
-- [Master Roadmap](../../todo4.md) - Complete feature specification
 - [TypeScript Schemas](./src/types/schemas.ts) - Shared type definitions
 - [Rust Backend](./src-tauri/src/main.rs) - Core IPC commands & models
 
