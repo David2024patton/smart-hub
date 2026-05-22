@@ -90,8 +90,9 @@ function fsApiPlugin() {
         } else {
           const id = resumeId || `term-${++termIdCounter}`
           session = { id, type: 'local', shell, proc: null, buf: [], watchers: new Set([ws]) }
+          let proc: any
           try {
-            const proc = pty.spawn(shell, [], { name: 'xterm-256color', cols, rows, useConpty: true })
+            proc = pty.spawn(shell, [], { name: 'xterm-256color', cols, rows, useConpty: true })
             session.proc = proc
             sessions.set(id, session)
           } catch { ws.close(); return }

@@ -36,6 +36,7 @@ export function Window({ win, children }: WindowProps) {
 
   const onMouseDown = useCallback((e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest('[data-window-control]')) return
+    if (!(e.target as HTMLElement).closest('[data-titlebar]')) return
     focusWindow(win.id)
 
     if (isFull && win.restoreBounds) {
@@ -147,7 +148,7 @@ export function Window({ win, children }: WindowProps) {
       onMouseDown={onMouseDown}
     >
       {/* Title bar */}
-      <div
+      <div data-titlebar
         className="flex items-center gap-2 px-3 h-[36px] select-none cursor-grab active:cursor-grabbing shrink-0"
         style={{ background: 'var(--bg-deep)', borderBottom: '1px solid var(--glass-border)' }}
         onDoubleClick={onTitleBarDoubleClick}
