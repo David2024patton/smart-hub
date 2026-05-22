@@ -8,6 +8,9 @@ const PAGE_EMOJIS: Record<string, string> = {
   security: '🛡️', lint: '🧹', settings: '⚙️', browser: '🌐', preview: '🔍',
 }
 
+// Only these pages appear as running apps in the TaskBar
+const TASKBAR_APPS = ['terminal', 'browser', 'file-explorer', 'preview', 'mcp-grid']
+
 export function TaskBar() {
   const { windows, activeWindowId, startMenuOpen, setStartMenu, focusWindow, restoreWindow, minimizeWindow } = useDesktop()
   const [clock, setClock] = useState(new Date())
@@ -50,7 +53,7 @@ export function TaskBar() {
 
         {/* Running apps */}
         <div className="flex-1 flex items-center gap-0.5 overflow-x-auto">
-          {windows.map((win: DesktopWindow) => (
+          {windows.filter(w => TASKBAR_APPS.includes(w.pageId)).map((win: DesktopWindow) => (
             <button key={win.id}
               className={`flex items-center gap-1.5 px-2.5 h-8 rounded-md text-xs cursor-pointer transition-colors shrink-0 max-w-[140px] ${win.minimized ? 'opacity-55' : ''}`}
               style={{
