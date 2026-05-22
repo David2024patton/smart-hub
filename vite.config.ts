@@ -358,7 +358,7 @@ function fsApiPlugin() {
         }
       })
 
-      // Lint API — runs tsc --noEmit and parses output
+      // Lint API — runs multi-language linters and aggregates results
       server.middlewares.use((req: any, res: any, next: any) => {
         if (!req.url || !req.url.startsWith('/api/lint/')) return next()
         const url = new URL(req.url, 'http://localhost')
@@ -367,27 +367,88 @@ function fsApiPlugin() {
 
         try {
           if (endpoint === 'run') {
-            const out = execSync('npx tsc --noEmit 2>&1 || true', { encoding: 'utf8', timeout: 30000, cwd: dirname })
-            const lines = out.trim().split('\n')
-            const issues: any[] = []
-            const regex = /^(.+?)\((\d+),(\d+)\):\s+(error|warning)\s+(\w+):\s+(.+)$/
-            for (const line of lines) {
-              const m = line.match(regex)
-              if (m) {
-                issues.push({
-                  id: `lint-${issues.length + 1}`,
-                  file: m[1].replace(/^\.\//, ''),
-                  line: parseInt(m[2]),
-                  column: parseInt(m[3]),
-                  severity: m[4] as 'error' | 'warning',
-                  code: m[5],
-                  message: m[6].trim(),
-                  fixable: m[5] === 'TS6133' || m[5] === 'TS2835',
-                  fixed: false,
+            const allIssues: any[] = []
+
+            // 1. TypeScript — tsc --noEmit
+            try {
+              const tscOut = execSync('npx tsc --noEmit 2>&1 || true', { encoding: 'utf8', timeout: 30000, cwd: dirname })
+              const tscRegex = /^(.+?)\((\d+),(\d+)\):\s+(error|warning)\s+(\w+):\s+(.+)$/m
+              for (const line of tscOut.trim().split('\n')) {
+                const m = line.match(tscRegex)
+                if (m) allIssues.push({
+                  id: `ts-${allIssues.length + 1}`, linter: 'tsc',
+                  file: m[1].replace(/^\.\//, ''), line: parseInt(m[2]), column: parseInt(m[3]),
+                  severity: m[4] as 'error' | 'warning', code: m[5], message: m[6].trim(),
+                  fixable: m[5] === 'TS6133' || m[5] === 'TS2835', fixed: false,
                 })
               }
-            }
-            res.end(JSON.stringify({ ok: true, issues }))
+            } catch {}
+
+            // 2. ESLint — JavaScript/TypeScript
+            try {
+              const eslintOut = execSync('npx eslint --format json src/ 2>&1 || true', { encoding: 'utf8', timeout: 15000, cwd: dirname })
+              const eslintData = JSON.parse(eslintOut)
+              if (Array.isArray(eslintData)) {
+                for (const file of eslintData) {
+                  for (const msg of file.messages || []) {
+                    allIssues.push({
+                      id: `es-${allIssues.length + 1}`, linter: 'eslint',
+                      file: file.filePath?.replace(/\\/g, '/').replace(/^.*?src\//, 'src/') || '',
+                      line: msg.line || 0, column: msg.column || 0,
+                      severity: msg.severity === 2 ? 'error' : 'warning',
+                      code: msg.ruleId || 'ESLint', message: msg.message,
+                      fixable: !!msg.fix, fixed: false,
+                    })
+                  }
+                }
+              }
+            } catch {}
+
+            // 3. Rust — cargo check (only if src-tauri exists)
+            try {
+              const cargoDir = path.join(dirname, 'src-tauri')
+              if (fs.existsSync(cargoDir)) {
+                const cargoOut = execSync('cargo check --message-format json 2>&1 || true', { encoding: 'utf8', timeout: 120000, cwd: cargoDir })
+                for (const line of cargoOut.trim().split('\n')) {
+                  try {
+                    const msg = JSON.parse(line)
+                    if (msg.reason === 'compiler-message' && msg.message) {
+                      const diag = msg.message
+                      const span = diag.spans?.[0]
+                      if (diag.level === 'error' || diag.level === 'warning') {
+                        allIssues.push({
+                          id: `rs-${allIssues.length + 1}`, linter: 'cargo',
+                          file: span?.file?.replace(/\\/g, '/').replace(/^.*?src-tauri\//, 'src-tauri/') || diag.code || 'unknown',
+                          line: span?.line_start || 0, column: span?.column_start || 0,
+                          severity: diag.level === 'error' ? 'error' : 'warning',
+                          code: diag.code?.code || 'cargo', message: diag.message.replace(/\n/g, ' ').trim(),
+                          fixable: false, fixed: false,
+                        })
+                      }
+                    }
+                  } catch {}
+                }
+              }
+            } catch {}
+
+            // 4. Python ruff — only if ruff is available
+            try {
+              const ruffOut = execSync('ruff check --output-format json --quiet . 2>&1 || true', { encoding: 'utf8', timeout: 15000, cwd: dirname })
+              const ruffData = JSON.parse(ruffOut)
+              if (Array.isArray(ruffData)) {
+                for (const item of ruffData) {
+                  allIssues.push({
+                    id: `py-${allIssues.length + 1}`, linter: 'ruff',
+                    file: item.filename || '', line: item.location?.row || 0, column: item.location?.column || 0,
+                    severity: 'warning',
+                    code: item.code || 'ruff', message: item.message || '',
+                    fixable: !!item.fix, fixed: false,
+                  })
+                }
+              }
+            } catch {}
+
+            res.end(JSON.stringify({ ok: true, issues: allIssues }))
             return
           }
           res.statusCode = 404

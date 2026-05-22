@@ -15,28 +15,15 @@ interface LintIssue {
 export function LintPage() {
   const [issues, setIssues] = useState<LintIssue[]>([])
   const [filter, setFilter] = useState<'all' | 'errors' | 'warnings'>('all')
+  const [linterFilter, setLinterFilter] = useState('all')
   const [isRunning, setIsRunning] = useState(false)
   const [error, setError] = useState('')
 
-  const runLint = useCallback(async () => {
-    setIsRunning(true)
-    setError('')
-    try {
-      const res = await fetch('/api/lint/run')
-      const data = await res.json()
-      if (data.issues) setIssues(data.issues.map((i: any) => ({ ...i, fixed: false })))
-      else setError(data.error || 'Lint failed')
-    } catch (err: any) {
-      setError(err.message)
-    }
-    setIsRunning(false)
-  }, [])
-
-  useEffect(() => { runLint() }, [])
-
+  const linters = [...new Set(issues.map(i => i.linter))]
   const filtered = issues.filter(i => {
-    if (filter === 'errors') return i.severity === 'error'
-    if (filter === 'warnings') return i.severity === 'warning'
+    if (filter === 'errors' && i.severity !== 'error') return false
+    if (filter === 'warnings' && i.severity !== 'warning') return false
+    if (linterFilter !== 'all' && i.linter !== linterFilter) return false
     return true
   })
 
@@ -103,18 +90,26 @@ export function LintPage() {
         </div>
       )}
 
-      <div className="flex gap-2">
-        {(['all', 'errors', 'warnings'] as const).map(f => (
-          <button key={f}
-            className="text-xs px-3 py-1.5 rounded-lg font-medium cursor-pointer transition-all"
-            style={filter === f ? {
-              background: 'var(--accent-subtle)', color: 'var(--accent)', border: '1px solid hsla(160, 84%, 39%, 0.2)',
-            } : { color: 'var(--text-muted)', border: '1px solid transparent' }}
-            onClick={() => setFilter(f)}
-            data-tooltip={`Filter ${f}`}>
-            {f.charAt(0).toUpperCase() + f.slice(1)} ({f === 'all' ? issues.length : f === 'errors' ? errorCount : warningCount})
-          </button>
-        ))}
+      <div className="flex items-center gap-3">
+        <div className="flex gap-2">
+          {(['all', 'errors', 'warnings'] as const).map(f => (
+            <button key={f}
+              className="text-xs px-3 py-1.5 rounded-lg font-medium cursor-pointer transition-all"
+              style={filter === f ? {
+                background: 'var(--accent-subtle)', color: 'var(--accent)', border: '1px solid hsla(160, 84%, 39%, 0.2)',
+              } : { color: 'var(--text-muted)', border: '1px solid transparent' }}
+              onClick={() => setFilter(f)}
+              data-tooltip={`Filter ${f}`}>
+              {f.charAt(0).toUpperCase() + f.slice(1)} ({f === 'all' ? issues.length : f === 'errors' ? errorCount : warningCount})
+            </button>
+          ))}
+        </div>
+        <select value={linterFilter} onChange={e => setLinterFilter(e.target.value)}
+          className="text-xs px-2 py-1.5 rounded-lg outline-none cursor-pointer"
+          style={{ background: 'rgba(255,255,255,0.03)', color: 'var(--text-secondary)', border: '1px solid var(--glass-border)' }}>
+          <option value="all">All linters</option>
+          {linters.map(l => <option key={l} value={l}>{l}</option>)}
+        </select>
       </div>
 
       {issues.length === 0 && !isRunning && !error && (
@@ -137,6 +132,10 @@ export function LintPage() {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 text-xs">
                 <span className="font-mono font-semibold" style={{ color: 'var(--text-secondary)' }}>{issue.code}</span>
+                <span className="text-[10px] px-1.5 py-0.5 rounded font-mono" style={{
+                  background: issue.linter === 'tsc' ? 'hsla(217, 91%, 60%, 0.1)' : issue.linter === 'eslint' ? 'hsla(38, 92%, 50%, 0.1)' : issue.linter === 'cargo' ? 'hsla(350, 89%, 60%, 0.1)' : 'hsla(160, 84%, 39%, 0.1)',
+                  color: issue.linter === 'tsc' ? 'var(--blue)' : issue.linter === 'eslint' ? 'var(--amber)' : issue.linter === 'cargo' ? 'var(--rose)' : 'var(--accent)',
+                }}>{issue.linter}</span>
                 <span className="font-mono" style={{ color: 'var(--text-ghost)' }}>{issue.file}:{issue.line}:{issue.column}</span>
                 {issue.fixable && !issue.fixed && (
                   <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: 'hsla(160, 84%, 39%, 0.08)', color: 'var(--accent)' }}>fixable</span>
@@ -159,7 +158,7 @@ export function LintPage() {
         ))}
       </div>
 
-      <p className="text-xs" style={{ color: 'var(--text-ghost)' }}>Powered by tsc --noEmit</p>
+      <p className="text-xs" style={{ color: 'var(--text-ghost)' }}>Powered by tsc, ESLint, cargo check, and ruff</p>
     </div>
   )
 }
