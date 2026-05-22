@@ -25,7 +25,7 @@ interface DesktopState {
 }
 
 type Action =
-  | { type: 'OPEN_WINDOW'; pageId: string; title?: string }
+  | { type: 'OPEN_WINDOW'; pageId: string; title?: string; maximize?: boolean }
   | { type: 'CLOSE_WINDOW'; id: string }
   | { type: 'MINIMIZE_WINDOW'; id: string }
   | { type: 'RESTORE_WINDOW'; id: string }
@@ -43,6 +43,26 @@ function genId() { return `win-${nextId++}` }
 function reducer(state: DesktopState, action: Action): DesktopState {
   switch (action.type) {
     case 'OPEN_WINDOW': {
+      const dw = window.innerWidth
+      const dh = window.innerHeight
+      if (action.maximize) {
+        // Check if already open
+        const existing = state.windows.find(w => w.pageId === action.pageId)
+        if (existing) {
+          return {
+            ...state,
+            windows: state.windows.map(w => w.id === existing.id ? { ...w, minimized: false, position: { x: 0, y: 0 }, size: { width: dw, height: dh }, zIndex: state.nextZIndex } : w),
+            activeWindowId: existing.id,
+            nextZIndex: state.nextZIndex + 1,
+          }
+        }
+        const id = genId()
+        const win: DesktopWindow = {
+          id, pageId: action.pageId, title: action.title || action.pageId.charAt(0).toUpperCase() + action.pageId.slice(1).replace('-', ' '),
+          minimized: false, pinned: false, position: { x: 0, y: 0 }, size: { width: dw, height: dh }, zIndex: state.nextZIndex,
+        }
+        return { ...state, windows: [...state.windows, win], activeWindowId: id, nextZIndex: state.nextZIndex + 1 }
+      }
       if (state.windows.some(w => w.pageId === action.pageId && !w.minimized)) {
         const existing = state.windows.find(w => w.pageId === action.pageId && !w.minimized)
         if (existing) return { ...state, activeWindowId: existing.id, nextZIndex: state.nextZIndex + 1 }
@@ -206,6 +226,7 @@ interface DesktopContextType {
   startMenuOpen: boolean
   snapIndicator: SnapZone | null
   openWindow: (pageId: string) => void
+  openMaximized: (pageId: string) => void
   closeWindow: (id: string) => void
   minimizeWindow: (id: string) => void
   restoreWindow: (id: string) => void
@@ -251,6 +272,11 @@ export function DesktopProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'OPEN_WINDOW', pageId, title })
   }, [])
 
+  const openMaximized = useCallback((pageId: string) => {
+    const title = PAGE_DEFAULTS[pageId] || pageId
+    dispatch({ type: 'OPEN_WINDOW', pageId, title, maximize: true })
+  }, [])
+
   const closeWindow = useCallback((id: string) => dispatch({ type: 'CLOSE_WINDOW', id }), [])
   const minimizeWindow = useCallback((id: string) => dispatch({ type: 'MINIMIZE_WINDOW', id }), [])
   const restoreWindow = useCallback((id: string) => dispatch({ type: 'RESTORE_WINDOW', id }), [])
@@ -274,6 +300,7 @@ export function DesktopProvider({ children }: { children: ReactNode }) {
       startMenuOpen: state.startMenuOpen,
       snapIndicator: state.snapIndicator,
       openWindow,
+      openMaximized,
       closeWindow,
       minimizeWindow,
       restoreWindow,

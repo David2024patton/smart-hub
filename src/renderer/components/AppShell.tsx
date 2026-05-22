@@ -23,12 +23,8 @@ export function AppShell({ collapsed, onToggleCollapse, activePage, onNavigate }
   const desktop = useDesktop()
 
   const handleNavigate = (pageId: string) => {
-    desktop.openWindow(pageId)
+    desktop.openMaximized(pageId)
     onNavigate(pageId)
-    requestAnimationFrame(() => {
-      const id = desktop.activeWindowId
-      if (id) desktop.snapWindow(id, 'full')
-    })
   }
 
   return (
