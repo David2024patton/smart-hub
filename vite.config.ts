@@ -288,6 +288,59 @@ function fsApiPlugin() {
         }
       })
 
+      // Serve browser monitor script for DevTools injection
+      server.middlewares.use((req: any, res: any, next: any) => {
+        if (req.url === '/__browser-monitor.js') {
+          res.setHeader('Content-Type', 'application/javascript; charset=utf-8')
+          res.setHeader('Access-Control-Allow-Origin', '*')
+          const content = fs.readFileSync(path.join(dirname, 'src/renderer/lib/browser-monitor.js'), 'utf-8')
+          res.end(content)
+          return
+        }
+        next()
+      })
+
+      // Browser proxy — fetch external URLs and inject monitor script
+      server.middlewares.use(async (req: any, res: any, next: any) => {
+        if (!req.url?.startsWith('/api/proxy/')) return next()
+        const url = new URL(req.url, 'http://localhost')
+        const target = url.searchParams.get('url') || ''
+        if (!target) { res.statusCode = 400; res.end('Missing url param'); return }
+
+        try {
+          const response = await fetch(target, {
+            headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) SmartHub/1.0' },
+            redirect: 'follow',
+          })
+          const contentType = response.headers.get('content-type') || ''
+          const isHtml = contentType.includes('text/html')
+
+          if (isHtml) {
+            let html = await response.text()
+            const monitorScript = `<script src="/__browser-monitor.js"></script>`
+            html = html.replace('</head>', monitorScript + '\n</head>')
+            res.setHeader('Content-Type', 'text/html; charset=utf-8')
+            res.setHeader('Access-Control-Allow-Origin', '*')
+            // Rewrite relative URLs to absolute
+            const base = target.replace(/\/[^/]*$/, '/')
+            html = html.replace(/(href|src|action)=(["'])\/(?!\/)/g, (m: string, attr: string, quote: string) => {
+              return `${attr}=${quote}${base}${m.slice(attr.length + 2)}`
+            })
+            res.end(html)
+          } else {
+            const buffer = Buffer.from(await response.arrayBuffer())
+            res.setHeader('Content-Type', contentType || 'application/octet-stream')
+            res.setHeader('Access-Control-Allow-Origin', '*')
+            res.setHeader('Content-Length', buffer.length)
+            res.end(buffer)
+          }
+        } catch (err: any) {
+          res.statusCode = 502
+          res.setHeader('Content-Type', 'text/plain')
+          res.end(`Proxy error: ${err.message}`)
+        }
+      })
+
       server.middlewares.use((req: any, res: any, next: any) => {
         if (!req.url || !req.url.startsWith('/api/fs/')) return next()
         const url = new URL(req.url, 'http://localhost')

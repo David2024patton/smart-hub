@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { getBrowserState, clearBrowserLogs } from '../lib/browser-state'
 
 export function HubBridge() {
   const wsRef = useRef<WebSocket | null>(null)
@@ -62,6 +63,13 @@ async function executeAction(action: string, payload: any): Promise<any> {
       return getText(payload.selector)
     case 'listElements':
       return listElements()
+    case 'browserConsole':
+      return getBrowserState().console.slice(-100)
+    case 'browserNetwork':
+      return getBrowserState().network.slice(-100)
+    case 'browserClear':
+      clearBrowserLogs()
+      return { ok: true }
     default:
       throw new Error(`Unknown action: ${action}`)
   }
@@ -87,6 +95,7 @@ function getState() {
     navItems,
     windows,
     buttons: listInteractiveElements(),
+    browser: getBrowserState(),
   }
 }
 

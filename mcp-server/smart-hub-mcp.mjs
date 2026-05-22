@@ -200,6 +200,37 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
       description: 'List all visible interactive UI elements on the current page',
       inputSchema: { type: 'object', properties: {} },
     },
+    {
+      name: 'browser_get_console',
+      description: 'Get all browser console logs from the Smart Hub browser DevTools',
+      inputSchema: { type: 'object', properties: {} },
+    },
+    {
+      name: 'browser_get_network',
+      description: 'Get all network requests captured by the Smart Hub browser DevTools',
+      inputSchema: { type: 'object', properties: {} },
+    },
+    {
+      name: 'browser_navigate',
+      description: 'Navigate the Smart Hub browser to a URL',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          url: { type: 'string', description: 'URL to navigate to' },
+        },
+        required: ['url'],
+      },
+    },
+    {
+      name: 'browser_get_state',
+      description: 'Get full browser state: current URL, console logs, network requests',
+      inputSchema: { type: 'object', properties: {} },
+    },
+    {
+      name: 'browser_clear_logs',
+      description: 'Clear all browser console and network logs',
+      inputSchema: { type: 'object', properties: {} },
+    },
   ],
 }))
 
@@ -389,6 +420,47 @@ $graphics.Dispose(); $bmp.Dispose()
       case 'list_ui_elements': {
         const data = await hubFetch('/api/hub/list-elements')
         return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] }
+      }
+
+      case 'browser_get_console': {
+        const data = await hubFetch('/api/hub/eval', {
+          method: 'POST',
+          body: JSON.stringify({ code: 'return JSON.stringify(window.__browserConsole ? window.__browserConsole.slice(-100) : [])' }),
+        })
+        return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] }
+      }
+
+      case 'browser_get_network': {
+        const data = await hubFetch('/api/hub/eval', {
+          method: 'POST',
+          body: JSON.stringify({ code: 'return JSON.stringify(window.__browserNetwork ? window.__browserNetwork.slice(-100) : [])' }),
+        })
+        return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] }
+      }
+
+      case 'browser_navigate': {
+        const data = await hubFetch('/api/hub/type', {
+          method: 'POST',
+          body: JSON.stringify({ selector: 'input[placeholder="Enter URL..."]', text: args?.url || '' }),
+        })
+        await hubFetch('/api/hub/click', {
+          method: 'POST',
+          body: JSON.stringify({ selector: 'button:has-text("Go")' }),
+        })
+        return { content: [{ type: 'text', text: `Navigated to ${args?.url}` }] }
+      }
+
+      case 'browser_get_state': {
+        const data = await hubFetch('/api/hub/state')
+        return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] }
+      }
+
+      case 'browser_clear_logs': {
+        await hubFetch('/api/hub/click', {
+          method: 'POST',
+          body: JSON.stringify({ selector: 'button:has-text("Clear")' }),
+        })
+        return { content: [{ type: 'text', text: 'Browser logs cleared' }] }
       }
 
       default:
