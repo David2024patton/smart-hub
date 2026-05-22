@@ -547,6 +547,24 @@
   animation: glow-pulse 2.5s ease-in-out infinite;
 }
 
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scale-up {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease both;
+}
+
+.animate-scale-up {
+  animation: scale-up 0.25s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 /* Staggered children animation */
 .stagger-children > *:nth-child(1) { animation-delay: 0.05s; }
 .stagger-children > *:nth-child(2) { animation-delay: 0.1s; }
@@ -585,4 +603,79 @@ html.light-theme .sidebar {
 
 html.light-theme .top-bar {
   background: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* ============================================
+   SCROLLBAR STYLING (#33 polish)
+   ============================================ */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* ============================================
+   RANGE INPUT (#30 sliders)
+   ============================================ */
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--bg-deep);
+  box-shadow: 0 0 12px var(--accent-glow);
+  cursor: pointer;
+}
+input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--bg-deep);
+  box-shadow: 0 0 12px var(--accent-glow);
+  cursor: pointer;
+  border: none;
+}
+
+/* ============================================
+   SELECT / INPUT POLISH
+   ============================================ */
+select, input, textarea {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+select:focus, input:focus, textarea:focus {
+  border-color: hsla(160, 84%, 39%, 0.3) !important;
+  box-shadow: 0 0 0 3px hsla(160, 84%, 39%, 0.06);
+}
+select option {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+/* ============================================
+   GLASS-CARD ENHANCEMENTS
+   ============================================ */
+.glass-card {
+  transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.glass-card:hover {
+  border-color: var(--glass-border-hover);
+}
+
+/* ============================================
+   TITLE BAR DRAG REGION (Tauri)
+   ============================================ */
+[data-tauri-drag-region] {
+  cursor: default;
 }

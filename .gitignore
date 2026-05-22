@@ -46,6 +46,9 @@ coverage/
 *.exe
 *.AppImage
 
+# Storybook
+storybook-static/
+
 # Database (local dev)
 *.sqlite
 *.sqlite3

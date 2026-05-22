@@ -36,6 +36,12 @@ const NAV_ITEMS: NavItem[] = [
     </svg>
   },
   {
+    id: 'kanban', label: 'Kanban',
+    icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/>
+    </svg>
+  },
+  {
     id: 'mcp-grid', label: 'MCP Mesh',
     icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="3"/><circle cx="4" cy="6" r="2"/><circle cx="20" cy="6" r="2"/>
@@ -77,6 +83,12 @@ const NAV_ITEMS: NavItem[] = [
     </svg>
   },
   {
+    id: 'lint', label: 'Lint Engine',
+    icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+    </svg>
+  },
+  {
     id: 'settings', label: 'Settings',
     icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="3"/>
@@ -104,7 +116,7 @@ export function Sidebar({ collapsed, onToggleCollapse, activePage, onNavigate }:
           onClick={onToggleCollapse}
           className="p-1.5 rounded-md hover:bg-white/5 transition-colors"
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          title={collapsed ? 'Expand' : 'Collapse'}
+          data-tooltip={collapsed ? 'Expand' : 'Collapse'}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
             strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
@@ -115,8 +127,25 @@ export function Sidebar({ collapsed, onToggleCollapse, activePage, onNavigate }:
       </div>
 
       {/* Navigation Items */}
-      <nav className="nav-items flex-1 overflow-y-auto p-2" role="navigation">
-        <ul className="space-y-0.5">
+      <nav className="nav-items flex-1 overflow-y-auto p-2" role="menubar" aria-label="Main navigation"
+        onKeyDown={(e) => {
+          const items = Array.from(e.currentTarget.querySelectorAll<HTMLButtonElement>('[role="menuitem"]'))
+          const currentIdx = items.findIndex(el => el.tabIndex === 0)
+          if (e.key === 'ArrowDown') {
+            e.preventDefault()
+            const next = (currentIdx + 1) % items.length
+            items[currentIdx]?.setAttribute('tabindex', '-1')
+            items[next]?.setAttribute('tabindex', '0')
+            items[next]?.focus()
+          } else if (e.key === 'ArrowUp') {
+            e.preventDefault()
+            const prev = (currentIdx - 1 + items.length) % items.length
+            items[currentIdx]?.setAttribute('tabindex', '-1')
+            items[prev]?.setAttribute('tabindex', '0')
+            items[prev]?.focus()
+          }
+        }}>
+        <ul className="space-y-0.5" role="none">
           {NAV_ITEMS.map((item) => (
             <NavItemRow
               key={item.id}
@@ -157,8 +186,9 @@ interface NavItemRowProps {
 function NavItemRow({ item, collapsed, isActive, onNavigate }: NavItemRowProps) {
 
   return (
-    <li>
+    <li role="none">
       <button
+        role="menuitem"
         className={`
           nav-item w-full flex items-center gap-2.5 px-2.5 py-2 rounded-md
           transition-all duration-200 text-left relative
@@ -179,7 +209,8 @@ function NavItemRow({ item, collapsed, isActive, onNavigate }: NavItemRowProps) 
         }}
         onClick={() => onNavigate(item.id)}
         aria-current={isActive ? 'page' : undefined}
-        title={collapsed ? item.label : undefined}
+        data-tooltip={item.label}
+        tabIndex={isActive ? 0 : -1}
       >
         <span className="flex-shrink-0 flex items-center justify-center w-5 h-5" aria-hidden="true"
           style={isActive ? { color: 'var(--accent)' } : { color: 'var(--text-muted)' }}>

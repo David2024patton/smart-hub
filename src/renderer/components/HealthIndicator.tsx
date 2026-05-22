@@ -78,7 +78,7 @@ export function HealthIndicator({ status, isLoading, error, dbConnected }: Healt
               ? 'bg-success/30 text-success' 
               : 'bg-warning/30 text-warning'
           }`}
-          title={dbConnected ? 'PostgreSQL connected' : 'Database not configured'}
+          data-tooltip={dbConnected ? 'PostgreSQL connected' : 'Database not configured'}
         >
           {dbConnected ? '● DB' : '○ DB'}
         </span>

@@ -4,6 +4,8 @@
 
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod services;
+
 use std::sync::Arc;
 use tauri::{Manager, State};
 use serde::{Serialize, Deserialize};
@@ -184,6 +186,102 @@ async fn unregister_session(state: State<'_, AppState>, session_id: String) -> R
     }
 }
 
+// ── Phase 1.4: Path Canonicalization Service (#44) ──
+#[tauri::command]
+fn canonicalize_path(input: String) -> Result<services::error::HubErrorResponse, String> {
+    info!("canonicalize_path: {}", input);
+    match services::path_service::canonicalize_path(&input) {
+        Ok(result) => {
+            let response = serde_json::to_value(&result).unwrap();
+            Ok(services::error::HubErrorResponse {
+                code: "OK".into(),
+                message: serde_json::to_string(&result).unwrap(),
+                field: None,
+                details: None,
+            })
+        }
+        Err(e) => Ok(services::error::HubError::from(e).into_response()),
+    }
+}
+
+#[tauri::command]
+fn resolve_relative_path(base: String, relative: String) -> Result<services::error::HubErrorResponse, String> {
+    match services::path_service::resolve_relative(&base, &relative) {
+        Ok(result) => Ok(services::error::HubErrorResponse {
+            code: "OK".into(),
+            message: result,
+            field: None,
+            details: None,
+        }),
+        Err(e) => Ok(services::error::HubError::from(e).into_response()),
+    }
+}
+
+// ── Phase 1.7: Lint Service (#47) ──
+#[tauri::command]
+fn run_lint(file_path: String) -> services::lint_service::LintResult {
+    info!("run_lint: {}", file_path);
+    services::lint_service::run_tsc_lint(&file_path)
+}
+
+// ── Phase 1.8: Error Demo (#49) ──
+#[tauri::command]
+fn demo_validation_error() -> services::error::HubErrorResponse {
+    services::error::HubError::Validation("Field 'project_name' is required".into()).into_response()
+}
+
+#[tauri::command]
+fn demo_not_found_error() -> services::error::HubErrorResponse {
+    services::error::HubError::NotFound("Project with id 'abc-123' not found".into()).into_response()
+}
+
+// ── Phase 2: File System Explorer ──
+#[tauri::command]
+fn list_directory(path: String) -> Result<Vec<services::fs_service::FileEntry>, String> {
+    info!("list_directory: {}", path);
+    services::fs_service::list_directory(&path).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn get_system_info() -> Result<services::system_service::SystemInfo, String> {
+    info!("get_system_info");
+    Ok(services::system_service::gather_system_info())
+}
+
+#[tauri::command]
+fn get_disk_usage() -> Result<Vec<services::system_service::DiskUsage>, String> {
+    info!("get_disk_usage");
+    Ok(services::system_service::gather_disk_usage())
+}
+
+#[tauri::command]
+fn read_text_file(path: String) -> Result<String, String> {
+    info!("read_text_file: {}", path);
+    services::fs_service::read_text_file(&path).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn read_file_binary(path: String) -> Result<String, String> {
+    info!("read_file_binary: {}", path);
+    let data = std::fs::read(&path).map_err(|e| e.to_string())?;
+    Ok(base64::encode(&data))
+}
+
+#[tauri::command]
+async fn open_file(path: String, app: tauri::AppHandle) -> Result<(), String> {
+    info!("open_file: {}", path);
+    tauri::api::shell::open(&app.shell_scope(), &path, None)
+        .map_err(|e| format!("Failed to open file: {}", e))
+}
+
+#[tauri::command]
+fn get_drives() -> Vec<services::fs_service::DriveEntry> {
+    #[cfg(target_os = "windows")]
+    { services::fs_service::get_windows_drives() }
+    #[cfg(not(target_os = "windows"))]
+    { services::fs_service::get_unix_mounts() }
+}
+
 // Initialize tracing/logger - Phase 1.2
 fn setup_logging() -> Result<(), Box<dyn std::error::Error>> {
     let file_appender = RollingFileAppender::new(
@@ -223,6 +321,18 @@ fn main() {
             log_message,
             register_session,
             unregister_session,
+            canonicalize_path,
+            resolve_relative_path,
+            run_lint,
+            demo_validation_error,
+            demo_not_found_error,
+            list_directory,
+            get_system_info,
+            get_disk_usage,
+            read_text_file,
+            read_file_binary,
+            open_file,
+            get_drives,
         ])
         .setup(|app| {
             info!("Smart Hub Tauri app setup complete");

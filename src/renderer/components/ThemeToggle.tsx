@@ -71,7 +71,7 @@ export function ThemeToggle() {
         ${theme === 'light' ? 'text-amber-500' : 'text-emerald-500'}
       `}
       aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
-      title={`Current theme: ${theme}`}
+      data-tooltip={`Current theme: ${theme}`}
     >
       {theme === 'dark' ? '☀️' : '🌙'}
     </button>

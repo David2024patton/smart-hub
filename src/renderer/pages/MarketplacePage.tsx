@@ -5,12 +5,12 @@
 import { useState } from 'react'
 
 const ALL_ASSETS = [
-  { id: 'code-reviewer', name: 'Code Reviewer', type: 'Persona', author: 'Anthropic', stars: 342, desc: 'Multi-agent code review for security, quality, and architecture' },
-  { id: 'web-scraper', name: 'Web Scraper Pro', type: 'MCP Server', author: 'nickthecook', stars: 189, desc: 'Advanced web scraping with Cloudflare bypass and proxy rotation' },
-  { id: 'frontend-design', name: 'Frontend Design', type: 'Skill', author: 'agent-zero', stars: 256, desc: '5-phase methodology for production-grade web interfaces' },
-  { id: 'docker-ops', name: 'Docker Ops', type: 'Skill', author: 'david', stars: 124, desc: 'Container management, compose operations, and health checks' },
-  { id: 'youtube-transcriber', name: 'YouTube Transcriber', type: 'MCP Server', author: 'community', stars: 97, desc: 'Extract transcripts from YouTube videos via yt-dlp' },
-  { id: 'mojo-expert', name: 'Mojo Expert', type: 'Persona', author: 'modular', stars: 215, desc: 'Systems-level AI programming with MLIR and GPU kernels' },
+  { id: 'code-reviewer', name: 'Code Reviewer', type: 'Persona', author: 'Anthropic', stars: 342, authorUrl: 'https://github.com/anthropics', desc: 'Multi-agent code review for security, quality, and architecture' },
+  { id: 'web-scraper', name: 'Web Scraper Pro', type: 'MCP Server', author: 'nickthecook', stars: 189, authorUrl: 'https://github.com/nickthecook', desc: 'Advanced web scraping with Cloudflare bypass and proxy rotation' },
+  { id: 'frontend-design', name: 'Frontend Design', type: 'Skill', author: 'agent-zero', stars: 256, authorUrl: 'https://github.com/agent-zero', desc: '5-phase methodology for production-grade web interfaces' },
+  { id: 'docker-ops', name: 'Docker Ops', type: 'Skill', author: 'david', stars: 124, authorUrl: 'https://github.com/David2024patton', desc: 'Container management, compose operations, and health checks' },
+  { id: 'youtube-transcriber', name: 'YouTube Transcriber', type: 'MCP Server', author: 'community', stars: 97, authorUrl: 'https://github.com/community', desc: 'Extract transcripts from YouTube videos via yt-dlp' },
+  { id: 'mojo-expert', name: 'Mojo Expert', type: 'Persona', author: 'modular', stars: 215, authorUrl: 'https://github.com/modular', desc: 'Systems-level AI programming with MLIR and GPU kernels' },
 ]
 
 const TYPE_COLORS: Record<string, { bg: string; color: string; border: string }> = {
@@ -120,6 +120,19 @@ export function MarketplacePage() {
                     </svg>
                     {a.stars}
                   </span>
+                  <a
+                    href={a.authorUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs px-2.5 py-1 rounded font-medium inline-flex items-center gap-1 cursor-pointer transition-all hover:opacity-80"
+                    style={{ background: 'hsla(38, 92%, 50%, 0.08)', color: 'var(--amber)', border: '1px solid hsla(38, 92%, 50%, 0.15)' }}
+                    data-tooltip="Give star to creator"
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                    Stars
+                  </a>
                   <button 
                     className="action-chip text-xs cursor-pointer" 
                     style={{ padding: '0.375rem 0.75rem', ...buttonStyle }}
