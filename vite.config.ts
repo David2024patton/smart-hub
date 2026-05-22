@@ -358,6 +358,46 @@ function fsApiPlugin() {
         }
       })
 
+      // Lint API — runs tsc --noEmit and parses output
+      server.middlewares.use((req: any, res: any, next: any) => {
+        if (!req.url || !req.url.startsWith('/api/lint/')) return next()
+        const url = new URL(req.url, 'http://localhost')
+        const endpoint = url.pathname.replace('/api/lint/', '')
+        res.setHeader('Content-Type', 'application/json')
+
+        try {
+          if (endpoint === 'run') {
+            const out = execSync('npx tsc --noEmit 2>&1 || true', { encoding: 'utf8', timeout: 30000, cwd: dirname })
+            const lines = out.trim().split('\n')
+            const issues: any[] = []
+            const regex = /^(.+?)\((\d+),(\d+)\):\s+(error|warning)\s+(\w+):\s+(.+)$/
+            for (const line of lines) {
+              const m = line.match(regex)
+              if (m) {
+                issues.push({
+                  id: `lint-${issues.length + 1}`,
+                  file: m[1].replace(/^\.\//, ''),
+                  line: parseInt(m[2]),
+                  column: parseInt(m[3]),
+                  severity: m[4] as 'error' | 'warning',
+                  code: m[5],
+                  message: m[6].trim(),
+                  fixable: m[5] === 'TS6133' || m[5] === 'TS2835',
+                  fixed: false,
+                })
+              }
+            }
+            res.end(JSON.stringify({ ok: true, issues }))
+            return
+          }
+          res.statusCode = 404
+          res.end(JSON.stringify({ error: 'Unknown lint endpoint' }))
+        } catch (err: any) {
+          res.statusCode = 500
+          res.end(JSON.stringify({ error: err.message }))
+        }
+      })
+
       server.middlewares.use((req: any, res: any, next: any) => {
         if (!req.url || !req.url.startsWith('/api/fs/')) return next()
         const url = new URL(req.url, 'http://localhost')
