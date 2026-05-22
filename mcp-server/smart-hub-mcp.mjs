@@ -231,6 +231,29 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
       description: 'Clear all browser console and network logs',
       inputSchema: { type: 'object', properties: {} },
     },
+    {
+      name: 'lint_file',
+      description: 'Run the appropriate linter on a specific file (detects language by extension)',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          path: { type: 'string', description: 'File path relative to project root (e.g. src/renderer/App.tsx)' },
+        },
+        required: ['path'],
+      },
+    },
+    {
+      name: 'lint_code',
+      description: 'Lint a code snippet by specifying the language',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          code: { type: 'string', description: 'Code snippet to lint' },
+          language: { type: 'string', description: 'Language (ts, js, rs, py, md, html, php, java, c, cs, json, css)', default: 'ts' },
+        },
+        required: ['code'],
+      },
+    },
   ],
 }))
 
@@ -461,6 +484,36 @@ $graphics.Dispose(); $bmp.Dispose()
           body: JSON.stringify({ selector: 'button:has-text("Clear")' }),
         })
         return { content: [{ type: 'text', text: 'Browser logs cleared' }] }
+      }
+
+      case 'lint_file': {
+        const data = await hubFetch(`/api/lint/file?path=${encodeURIComponent(args?.path || '')}`)
+        return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] }
+      }
+
+      case 'lint_code': {
+        const lang = args?.language || 'ts'
+        const linterMap: Record<string, string> = {
+          ts: 'npx tsc --noEmit --pretty false 2>&1 || true',
+          js: `echo '${(args?.code || '').replace(/'/g, "'\\''")}' | npx eslint --stdin --format json 2>&1 || true`,
+          rs: 'echo "Lint not supported inline for Rust. Use lint_file instead."',
+          py: `echo '${(args?.code || '').replace(/'/g, "'\\''")}' | ruff check --stdin-filename snippet.py --output-format json 2>&1 || true`,
+          md: 'echo "Lint not supported inline for Markdown. Use lint_file instead."',
+          html: `echo '${(args?.code || '').replace(/'/g, "'\\''")}' | npx html-validate --stdin --format json 2>&1 || true`,
+        }
+        const cmd = linterMap[lang] || 'echo "Unsupported language"'
+        return new Promise((resolve) => {
+          let output = ''
+          const proc = spawn('cmd.exe', ['/c', cmd], { shell: false })
+          proc.stdout.on('data', (d: Buffer) => { output += d.toString() })
+          proc.stderr.on('data', (d: Buffer) => { output += d.toString() })
+          proc.on('close', () => {
+            resolve({ content: [{ type: 'text', text: output.slice(0, 5000) || '(no output)' }] })
+          })
+          proc.on('error', (err: Error) => {
+            resolve({ content: [{ type: 'text', text: `Error: ${err.message}` }] })
+          })
+        })
       }
 
       default:

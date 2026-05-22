@@ -1,6 +1,7 @@
 import { ReactNode } from 'react'
 import { Sidebar } from './Sidebar'
 import { TitleBar } from './TitleBar'
+import { TopBar } from './TopBar'
 
 import { Desktop } from './Desktop'
 import { TaskBar } from './TaskBar'
@@ -44,6 +45,7 @@ export function AppShell({ collapsed, onToggleCollapse, activePage, onNavigate }
       <div className="main-area flex-1 flex flex-col min-w-0">
         <FullscreenHint />
         <TitleBar />
+        <TopBar />
         <Desktop />
         <TaskBar />
       </div>

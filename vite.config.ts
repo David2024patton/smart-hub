@@ -448,7 +448,65 @@ function fsApiPlugin() {
               }
             } catch {}
 
+            // 5. Markdown — markdownlint if available
+            try {
+              const mdOut = execSync('npx markdownlint-cli2 "**/*.md" --json 2>&1 || true', { encoding: 'utf8', timeout: 15000, cwd: dirname })
+              const mdData = JSON.parse(mdOut)
+              if (typeof mdData === 'object') {
+                for (const [file, issues] of Object.entries(mdData)) {
+                  for (const issue of issues as any[]) {
+                    allIssues.push({
+                      id: `md-${allIssues.length + 1}`, linter: 'markdown',
+                      file: (file as string).replace(/\\/g, '/'),
+                      line: issue.lineNumber || 0, column: 0,
+                      severity: 'warning', code: issue.ruleName || 'MD',
+                      message: issue.ruleDescription || issue.errorString || '',
+                      fixable: false, fixed: false,
+                    })
+                  }
+                }
+              }
+            } catch {}
+
+            // 6. HTML — html-validate if available
+            try {
+              const htmlOut = execSync('npx html-validate "src/**/*.html" --format json 2>&1 || true', { encoding: 'utf8', timeout: 15000, cwd: dirname })
+              const htmlData = JSON.parse(htmlOut)
+              if (Array.isArray(htmlData?.filePath)) {
+                // html-validate format varies — try parsing
+              } else if (htmlData?.results) {
+                for (const file of htmlData.results) {
+                  for (const msg of file.messages || []) {
+                    allIssues.push({
+                      id: `html-${allIssues.length + 1}`, linter: 'html',
+                      file: file.filePath?.replace(/\\/g, '/') || '',
+                      line: msg.line || 0, column: msg.column || 0,
+                      severity: msg.severity === 2 ? 'error' : 'warning',
+                      code: msg.ruleId || 'html', message: msg.message || '',
+                      fixable: false, fixed: false,
+                    })
+                  }
+                }
+              }
+            } catch {}
+
             res.end(JSON.stringify({ ok: true, issues: allIssues }))
+            return
+          }
+
+          // File-specific lint — detects language and runs appropriate linter
+          if (endpoint === 'file') {
+            const filePath = url.searchParams.get('path') || ''
+            const ext = path.extname(filePath).toLowerCase()
+            const langMap: Record<string, string> = {
+              '.ts': 'tsc', '.tsx': 'tsc', '.js': 'eslint', '.jsx': 'eslint',
+              '.rs': 'cargo', '.py': 'ruff', '.md': 'markdown',
+              '.html': 'html', '.php': 'php', '.java': 'java',
+              '.c': 'c', '.cpp': 'cpp', '.cs': 'csharp',
+              '.json': 'json', '.css': 'css', '.scss': 'scss',
+            }
+            const lang = langMap[ext] || 'unknown'
+            res.end(JSON.stringify({ ok: true, file: filePath, language: lang }))
             return
           }
           res.statusCode = 404

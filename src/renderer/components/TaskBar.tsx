@@ -66,7 +66,7 @@ export function TaskBar() {
           data-tooltip="Start menu"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h8v8H3V3zm0 10h8v8H3v-8zM13 3h8v8h-8V3zm0 10h8v8h-8v-8z"/></svg>
-          Start
+          Menu
         </button>
 
         <div className="w-px h-6 mx-1.5" style={{ background: 'rgba(255,255,255,0.06)' }} />
