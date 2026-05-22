@@ -337,34 +337,40 @@ function fsApiPlugin() {
           if (contentType.includes('text/html')) {
             let html = body.toString('utf-8')
 
-            // Inject or replace <base> so relative URLs (<img src>, <link href>, <script src>)
-            // resolve through our proxy, keeping asset loading in-app
-            const proxyPrefix = `/proxy/${encodeURIComponent(targetUrl)}`
-            const baseTag = `<base href="${proxyPrefix}">`
+            // Inject <base> pointing to original domain origin so CSS, JS, images
+            // load directly from the real server (correct MIME types, no double-encoding)
+            let baseUrl: string
+            try {
+              const u = new URL(targetUrl)
+              baseUrl = u.origin + u.pathname.replace(/\/[^/]*$/, '/')
+            } catch {
+              baseUrl = targetUrl.replace(/\/[^/]*$/, '/')
+            }
+            const baseTag = `<base href="${baseUrl}">`
             if (/<base\s/i.test(html)) {
               html = html.replace(/<base[^>]*>/i, baseTag)
             } else {
               html = html.replace('<head>', `<head>\n${baseTag}`)
             }
 
-            // Rewrite <a href> and <form action> to stay in the proxy (navigation)
-            html = html.replace(
-              /(href|action)\s*=\s*(["'])(.*?)(["'])/gi,
-              (match: string, attr: string, q1: string, value: string, q2: string) => {
-                const trimmed = value.trim()
-                if (/^(#|javascript:|mailto:|tel:|data:|blob:)/i.test(trimmed)) return match
-                // Skip already-proxied URLs
-                if (trimmed.startsWith('/proxy/')) return match
-                try {
-                  const absolute = new URL(trimmed, targetUrl).href
-                  return `${attr}=${q1}/proxy/${encodeURIComponent(absolute)}${q2}`
-                } catch {
-                  return match
-                }
+            const rewriteUrl = (match: string, prefix: string, q1: string, value: string, q2: string) => {
+              const trimmed = value.trim()
+              if (/^(#|javascript:|mailto:|tel:|data:|blob:)/i.test(trimmed)) return match
+              if (trimmed.startsWith('/proxy/')) return match
+              try {
+                const absolute = new URL(trimmed, targetUrl).href
+                return `${prefix}${q1}/proxy/${encodeURIComponent(absolute)}${q2}`
+              } catch {
+                return match
               }
-            )
+            }
 
-            // Remove X-Frame-Options and CSP frame-ancestors so the page loads in our iframe
+            // Rewrite <a href> for navigation through proxy
+            html = html.replace(/(<a\s+[^>]*?href\s*=\s*)(["'])(.*?)(["'])/gi, rewriteUrl)
+            // Rewrite <form action> for form submissions through proxy
+            html = html.replace(/(<form\s+[^>]*?action\s*=\s*)(["'])(.*?)(["'])/gi, rewriteUrl)
+
+            // Strip frame-blocking headers
             html = html.replace(/<meta[^>]*http-equiv=["']X-Frame-Options["'][^>]*>/gi, '')
             html = html.replace(/<meta[^>]*http-equiv=["']Content-Security-Policy["'][^>]*>/gi, (m: string) => {
               return m.replace(/frame-ancestors[^;]+;?/gi, '')
