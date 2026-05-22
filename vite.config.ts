@@ -17,31 +17,26 @@ import { playwright } from '@vitest/browser-playwright';
 const dirname = typeof __dirname !== 'undefined' ? __dirname : path.dirname(fileURLToPath(import.meta.url));
 
 function getWindowsDiskInfo(): Record<string, { total_gb: number; available_gb: number; drive_type: string; total_space: number; available_space: number }> {
-  try {
-    const out = execSync('wmic logicaldisk get caption,size,freespace,drivetype /format:csv', { encoding: 'utf8', timeout: 5000 })
-    const lines = out.trim().split('\n').slice(1)
-    const result: Record<string, any> = {}
-    for (const line of lines) {
-      const parts = line.trim().split(',')
-      if (parts.length < 4) continue
-      const [, caption, driveType, freeSpace, size] = parts
-      const letter = caption?.trim()?.toUpperCase()
-      if (!letter) continue
-      const total = parseInt(size || '0')
-      const free = parseInt(freeSpace || '0')
-      const typeMap: Record<string, string> = { '1': 'No Root', '2': 'Removable', '3': 'Fixed', '4': 'Network', '5': 'CD-ROM', '6': 'RAM' }
-      result[letter] = {
+  const result: Record<string, any> = {}
+  for (let i = 65; i <= 90; i++) {
+    const letter = String.fromCharCode(i)
+    const root = letter + ':\\'
+    try {
+      fs.accessSync(root)
+      const stat = fs.statfsSync(root)
+      const total = Number(stat.blocks) * Number(stat.bsize)
+      const free = Number(stat.bavail) * Number(stat.bsize)
+      const typeMap: Record<number, string> = { 2: 'Fixed', 3: 'Removable', 6: 'exFAT', 11: 'ReFS' }
+      result[letter + ':'] = {
         total_gb: +(total / (1024 ** 3)).toFixed(1),
         available_gb: +(free / (1024 ** 3)).toFixed(1),
-        drive_type: typeMap[driveType?.trim()] || 'Fixed',
+        drive_type: typeMap[stat.type] || 'Fixed',
         total_space: total,
         available_space: free,
       }
-    }
-    return result
-  } catch {
-    return {}
+    } catch {}
   }
+  return result
 }
 
 function fsApiPlugin() {
