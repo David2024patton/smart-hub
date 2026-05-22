@@ -305,51 +305,78 @@ function fsApiPlugin() {
         }
       })
 
-      // Serve browser monitor script for DevTools injection
-      server.middlewares.use((req: any, res: any, next: any) => {
-        if (req.url === '/__browser-monitor.js') {
-          res.setHeader('Content-Type', 'application/javascript; charset=utf-8')
-          res.setHeader('Access-Control-Allow-Origin', '*')
-          const content = fs.readFileSync(path.join(dirname, 'src/renderer/lib/browser-monitor.js'), 'utf-8')
-          res.end(content)
+      // Web proxy — serves external URLs through our server so they load in an iframe
+      // Usage: <iframe src="/proxy/<encoded-url>">
+      server.middlewares.use(async (req: any, res: any, next: any) => {
+        if (!req.url?.startsWith('/proxy/')) return next()
+
+        const rawUrl = req.url.slice('/proxy/'.length)
+        let targetUrl: string
+        try {
+          targetUrl = decodeURIComponent(rawUrl)
+          new URL(targetUrl)
+        } catch {
+          res.statusCode = 400
+          res.setHeader('Content-Type', 'text/plain')
+          res.end('Invalid proxy URL')
           return
         }
-        next()
-      })
-
-      // Browser proxy — fetch external URLs and inject monitor script
-      server.middlewares.use(async (req: any, res: any, next: any) => {
-        if (!req.url?.startsWith('/api/proxy/')) return next()
-        const url = new URL(req.url, 'http://localhost')
-        const target = url.searchParams.get('url') || ''
-        if (!target) { res.statusCode = 400; res.end('Missing url param'); return }
 
         try {
-          const response = await fetch(target, {
-            headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) SmartHub/1.0' },
+          const response = await fetch(targetUrl, {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 SmartHub/1.0',
+              'Accept': '*/*',
+            },
             redirect: 'follow',
           })
-          const contentType = response.headers.get('content-type') || ''
-          const isHtml = contentType.includes('text/html')
 
-          if (isHtml) {
-            let html = await response.text()
-            const monitorScript = `<script src="/__browser-monitor.js"></script>`
-            html = html.replace('</head>', monitorScript + '\n</head>')
-            res.setHeader('Content-Type', 'text/html; charset=utf-8')
-            res.setHeader('Access-Control-Allow-Origin', '*')
-            // Rewrite relative URLs to absolute
-            const base = target.replace(/\/[^/]*$/, '/')
-            html = html.replace(/(href|src|action)=(["'])\/(?!\/)/g, (m: string, attr: string, quote: string) => {
-              return `${attr}=${quote}${base}${m.slice(attr.length + 2)}`
+          const contentType = response.headers.get('content-type') || ''
+          const body = Buffer.from(await response.arrayBuffer())
+
+          if (contentType.includes('text/html')) {
+            let html = body.toString('utf-8')
+
+            // Inject or replace <base> so relative URLs (<img src>, <link href>, <script src>)
+            // resolve through our proxy, keeping asset loading in-app
+            const proxyPrefix = `/proxy/${encodeURIComponent(targetUrl)}`
+            const baseTag = `<base href="${proxyPrefix}">`
+            if (/<base\s/i.test(html)) {
+              html = html.replace(/<base[^>]*>/i, baseTag)
+            } else {
+              html = html.replace('<head>', `<head>\n${baseTag}`)
+            }
+
+            // Rewrite <a href> and <form action> to stay in the proxy (navigation)
+            html = html.replace(
+              /(href|action)\s*=\s*(["'])(.*?)(["'])/gi,
+              (match: string, attr: string, q1: string, value: string, q2: string) => {
+                const trimmed = value.trim()
+                if (/^(#|javascript:|mailto:|tel:|data:|blob:)/i.test(trimmed)) return match
+                // Skip already-proxied URLs
+                if (trimmed.startsWith('/proxy/')) return match
+                try {
+                  const absolute = new URL(trimmed, targetUrl).href
+                  return `${attr}=${q1}/proxy/${encodeURIComponent(absolute)}${q2}`
+                } catch {
+                  return match
+                }
+              }
+            )
+
+            // Remove X-Frame-Options and CSP frame-ancestors so the page loads in our iframe
+            html = html.replace(/<meta[^>]*http-equiv=["']X-Frame-Options["'][^>]*>/gi, '')
+            html = html.replace(/<meta[^>]*http-equiv=["']Content-Security-Policy["'][^>]*>/gi, (m: string) => {
+              return m.replace(/frame-ancestors[^;]+;?/gi, '')
             })
+
+            res.setHeader('Content-Type', 'text/html; charset=utf-8')
             res.end(html)
           } else {
-            const buffer = Buffer.from(await response.arrayBuffer())
-            res.setHeader('Content-Type', contentType || 'application/octet-stream')
+            res.setHeader('Content-Type', contentType)
+            res.setHeader('Content-Length', body.length)
             res.setHeader('Access-Control-Allow-Origin', '*')
-            res.setHeader('Content-Length', buffer.length)
-            res.end(buffer)
+            res.end(body)
           }
         } catch (err: any) {
           res.statusCode = 502

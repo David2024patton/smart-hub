@@ -1,9 +1,26 @@
 import { useState, useRef, useCallback } from 'react'
 
+const SEARCH_URL = 'https://html.duckduckgo.com/html?q='
+
+function toProxyUrl(target: string) {
+  return `/proxy/${encodeURIComponent(target)}`
+}
+
+function extractOriginalUrl(proxyUrl: string) {
+  if (!proxyUrl) return ''
+  const idx = proxyUrl.indexOf('/proxy/')
+  if (idx === -1) return proxyUrl
+  try {
+    return decodeURIComponent(proxyUrl.slice(idx + '/proxy/'.length))
+  } catch {
+    return proxyUrl
+  }
+}
+
 export function BrowserPage() {
-  const [url, setUrl] = useState('https://google.com')
-  const [history, setHistory] = useState<string[]>([])
-  const [historyIdx, setHistoryIdx] = useState(-1)
+  const [url, setUrl] = useState('https://html.duckduckgo.com/html')
+  const [history, setHistory] = useState<string[]>(['https://html.duckduckgo.com/html'])
+  const [historyIdx, setHistoryIdx] = useState(0)
   const iframeRef = useRef<HTMLIFrameElement>(null)
 
   const navigate = useCallback((targetUrl?: string) => {
@@ -13,7 +30,7 @@ export function BrowserPage() {
       if (/^\w+\.\w+/.test(target) && !target.includes(' ')) {
         target = 'https://' + target
       } else {
-        target = `https://html.duckduckgo.com/html?q=${encodeURIComponent(target)}`
+        target = SEARCH_URL + encodeURIComponent(target)
       }
     }
     setHistory(prev => {
@@ -27,31 +44,54 @@ export function BrowserPage() {
 
   const goBack = () => {
     if (historyIdx <= 0) return
-    const newIdx = historyIdx - 1
-    iframeRef.current?.contentWindow?.location.assign(history[newIdx])
-    setHistoryIdx(newIdx)
-    setUrl(history[newIdx])
+    setHistoryIdx(prev => prev - 1)
+    setUrl(history[historyIdx - 1])
   }
 
   const goForward = () => {
     if (historyIdx >= history.length - 1) return
-    const newIdx = historyIdx + 1
-    iframeRef.current?.contentWindow?.location.assign(history[newIdx])
-    setHistoryIdx(newIdx)
-    setUrl(history[newIdx])
+    setHistoryIdx(prev => prev + 1)
+    setUrl(history[historyIdx + 1])
   }
 
   const refresh = () => {
-    if (history[historyIdx]) iframeRef.current?.contentWindow?.location.reload()
+    if (history[historyIdx]) {
+      const iframe = iframeRef.current
+      if (iframe) iframe.src = toProxyUrl(history[historyIdx])
+    }
   }
 
   const openExternal = () => {
     if (history[historyIdx]) window.open(history[historyIdx], '_blank')
   }
 
+  // Sync URL bar when iframe loads (if navigation happened inside iframe)
+  const handleLoad = () => {
+    try {
+      const iframeUrl = iframeRef.current?.contentWindow?.location.href
+      if (iframeUrl) {
+        const original = extractOriginalUrl(iframeUrl)
+        if (original && original !== url) {
+          setUrl(original)
+          setHistory(prev => {
+            if (prev[historyIdx] === original) return prev
+            const next = prev.slice(0, historyIdx + 1)
+            next.push(original)
+            return next
+          })
+          setHistoryIdx(prev => prev + 1)
+        }
+      }
+    } catch {
+      // Cross-origin access will throw — ignore silently
+    }
+  }
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') navigate()
   }
+
+  const currentUrl = history[historyIdx] || ''
 
   return (
     <div className="flex flex-col h-full" style={{ background: '#1e1e1e' }}>
@@ -67,24 +107,21 @@ export function BrowserPage() {
           placeholder="Enter URL or search..." />
         <button onClick={() => navigate()} className="px-2.5 py-1 rounded text-xs font-medium cursor-pointer"
           style={{ background: '#4ec9b0', color: '#1e1e1e' }}>Go</button>
-      </div>
-
-      {/* Info bar */}
-      <div className="flex items-center gap-2 px-3 py-1 shrink-0 text-[11px]" style={{ background: '#252526', borderBottom: '1px solid #444', color: '#888' }}>
-        <span>Type a URL or search query in the address bar</span>
-        <span className="flex-1" />
-        <button onClick={openExternal} className="text-[11px] px-2 py-0.5 rounded cursor-pointer"
-          style={{ color: '#4ec9b0', background: 'rgba(78,201,176,0.1)' }}>
-          Open in external browser ↗
-        </button>
+        <button onClick={openExternal} className="nav-btn ml-1" title="Open in external browser">↗</button>
       </div>
 
       {/* Iframe */}
       <div className="flex-1 relative min-h-0">
-        {history[historyIdx] ? (
-          <iframe ref={iframeRef} src={history[historyIdx]} className="w-full h-full border-0"
+        {currentUrl ? (
+          <iframe
+            ref={iframeRef}
+            key={currentUrl}
+            src={toProxyUrl(currentUrl)}
+            onLoad={handleLoad}
+            className="w-full h-full border-0"
             style={{ background: 'white' }}
-            title="Browser" />
+            title="Browser"
+          />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center text-xs" style={{ color: '#666' }}>
             Enter a URL to start browsing
