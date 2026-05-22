@@ -70,6 +70,19 @@ async function executeAction(action: string, payload: any): Promise<any> {
     case 'browserClear':
       clearBrowserLogs()
       return { ok: true }
+    case 'highlight':
+      window.dispatchEvent(new CustomEvent('hub-highlight', {
+        detail: { type: 'highlight', data: { selector: payload.selector, text: payload.text, color: payload.color, id: `hl-${Date.now()}` } },
+      }))
+      return { ok: true }
+    case 'highlightClear':
+      window.dispatchEvent(new CustomEvent('hub-highlight', { detail: { type: 'highlight-clear', data: {} } }))
+      return { ok: true }
+    case 'tutorial':
+      window.dispatchEvent(new CustomEvent('hub-highlight', {
+        detail: { type: 'tutorial', data: { steps: payload.steps } },
+      }))
+      return { ok: true }
     default:
       throw new Error(`Unknown action: ${action}`)
   }

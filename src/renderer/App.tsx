@@ -6,6 +6,7 @@ import { DesktopProvider } from './contexts/DesktopContext'
 import { OnboardingWizard } from './components/OnboardingWizard'
 import { TooltipManager } from './components/TooltipManager'
 import { HubBridge } from './components/HubBridge'
+import { HighlightOverlay } from './components/HighlightOverlay'
 import './index.css'
 
 function AppInner() {
@@ -34,6 +35,7 @@ export function App() {
           <AppInner />
           <TooltipManager />
           <HubBridge />
+          <HighlightOverlay />
         </DesktopProvider>
       </CompanionProvider>
     </UserProvider>

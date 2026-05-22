@@ -336,6 +336,47 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
         required: ['code'],
       },
     },
+    {
+      name: 'highlight_element',
+      description: 'Highlight a UI element with an optional annotation. Useful for tutorials and visual guidance.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          selector: { type: 'string', description: 'CSS selector for the element to highlight' },
+          text: { type: 'string', description: 'Annotation text to show near the element', default: '' },
+          color: { type: 'string', description: 'Highlight color (hex or CSS color)', default: '#4ec9b0' },
+        },
+        required: ['selector'],
+      },
+    },
+    {
+      name: 'highlight_clear',
+      description: 'Remove all highlights and tutorial overlays from the UI',
+      inputSchema: { type: 'object', properties: {} },
+    },
+    {
+      name: 'start_tutorial',
+      description: 'Start an interactive step-by-step tutorial overlay that guides the user through UI elements',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          steps: {
+            type: 'array',
+            description: 'Array of tutorial steps',
+            items: {
+              type: 'object',
+              properties: {
+                title: { type: 'string', description: 'Step title' },
+                text: { type: 'string', description: 'Step description/instruction' },
+                selector: { type: 'string', description: 'CSS selector for the element to focus on' },
+              },
+              required: ['title', 'text', 'selector'],
+            },
+          },
+        },
+        required: ['steps'],
+      },
+    },
   ],
 }))
 
@@ -586,6 +627,36 @@ $graphics.Dispose(); $bmp.Dispose();`
         const cmd = cmds[lang] || `echo '${escaped}' | npx eslint --stdin --format json 2>&1 || true`
         const result = await runCommand(cmd)
         return { content: [{ type: 'text', text: result.output || '(no issues)' }] }
+      }
+
+      case 'highlight_element': {
+        await hubFetch('/api/hub/eval', {
+          method: 'POST',
+          body: JSON.stringify({
+            code: `window.dispatchEvent(new CustomEvent('hub-highlight',{detail:{type:'highlight',data:{selector:${JSON.stringify(args?.selector)},text:${JSON.stringify(args?.text || '')},color:${JSON.stringify(args?.color || '#4ec9b0')}}}}))`,
+          }),
+        })
+        return { content: [{ type: 'text', text: `Highlighted ${args?.selector}` }] }
+      }
+
+      case 'highlight_clear': {
+        await hubFetch('/api/hub/eval', {
+          method: 'POST',
+          body: JSON.stringify({
+            code: `window.dispatchEvent(new CustomEvent('hub-highlight',{detail:{type:'highlight-clear',data:{}}}))`,
+          }),
+        })
+        return { content: [{ type: 'text', text: 'Highlights cleared' }] }
+      }
+
+      case 'start_tutorial': {
+        await hubFetch('/api/hub/eval', {
+          method: 'POST',
+          body: JSON.stringify({
+            code: `window.dispatchEvent(new CustomEvent('hub-highlight',{detail:{type:'tutorial',data:{steps:${JSON.stringify(args?.steps || [])}}}}))`,
+          }),
+        })
+        return { content: [{ type: 'text', text: `Tutorial started with ${args?.steps?.length || 0} steps` }] }
       }
 
       default:
