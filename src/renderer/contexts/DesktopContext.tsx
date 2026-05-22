@@ -25,7 +25,7 @@ interface DesktopState {
 }
 
 type Action =
-  | { type: 'OPEN_WINDOW'; pageId: string; title?: string; maximize?: boolean }
+  | { type: 'OPEN_WINDOW'; pageId: string; title?: string; maximize?: boolean; desktopW?: number; desktopH?: number }
   | { type: 'CLOSE_WINDOW'; id: string }
   | { type: 'MINIMIZE_WINDOW'; id: string }
   | { type: 'RESTORE_WINDOW'; id: string }
@@ -43,8 +43,8 @@ function genId() { return `win-${nextId++}` }
 function reducer(state: DesktopState, action: Action): DesktopState {
   switch (action.type) {
     case 'OPEN_WINDOW': {
-      const dw = window.innerWidth
-      const dh = window.innerHeight
+      const dw = action.desktopW || window.innerWidth
+      const dh = action.desktopH || window.innerHeight
       if (action.maximize) {
         // Check if already open
         const existing = state.windows.find(w => w.pageId === action.pageId)
@@ -274,7 +274,10 @@ export function DesktopProvider({ children }: { children: ReactNode }) {
 
   const openMaximized = useCallback((pageId: string) => {
     const title = PAGE_DEFAULTS[pageId] || pageId
-    dispatch({ type: 'OPEN_WINDOW', pageId, title, maximize: true })
+    const desktopEl = document.querySelector('[data-desktop]')
+    const dw = desktopEl ? desktopEl.clientWidth : window.innerWidth
+    const dh = desktopEl ? desktopEl.clientHeight : window.innerHeight
+    dispatch({ type: 'OPEN_WINDOW', pageId, title, maximize: true, desktopW: dw, desktopH: dh })
   }, [])
 
   const closeWindow = useCallback((id: string) => dispatch({ type: 'CLOSE_WINDOW', id }), [])

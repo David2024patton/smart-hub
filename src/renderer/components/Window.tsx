@@ -142,7 +142,7 @@ export function Window({ win, children }: WindowProps) {
           ? '0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px var(--accent-subtle)'
           : undefined,
         transition: dragging ? 'box-shadow 0.1s' : 'none',
-        resize: 'both',
+        resize: isFull ? 'none' : 'both',
         overflow: 'hidden',
       }}
       onMouseDown={onMouseDown}
