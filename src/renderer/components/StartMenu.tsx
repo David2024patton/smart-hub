@@ -56,6 +56,7 @@ export function StartMenu() {
         background: 'var(--bg-elevated)',
         border: '1px solid var(--glass-border)',
         maxHeight: '60vh',
+        boxShadow: '0 8px 40px rgba(0,0,0,0.2)',
       }}
     >
       {/* Header */}
@@ -78,12 +79,10 @@ export function StartMenu() {
               {items.map(item => (
                 <button
                   key={item.id}
-                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs cursor-pointer transition-colors hover:bg-white/[0.03] ${
-                    isOpen(item.id) ? '' : ''
-                  }`}
+                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs cursor-pointer transition-colors hover:bg-white/[0.04]"
                   style={{
                     color: isOpen(item.id) ? 'var(--accent)' : 'var(--text-secondary)',
-                    background: isOpen(item.id) ? 'var(--accent-subtle)' : 'transparent',
+                    background: isOpen(item.id) ? 'var(--accent-subtle)' : 'var(--bg-surface)',
                   }}
                   onClick={() => handleClick(item.id)}
                 >
