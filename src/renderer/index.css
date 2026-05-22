@@ -581,14 +581,14 @@ html.light-theme {
   --bg-deep: hsl(210, 20%, 95%);
   --bg-surface: hsl(210, 20%, 92%);
   --bg-elevated: hsl(0, 0%, 100%);
-  --bg-card: rgba(255, 255, 255, 0.75);
+  --bg-card: rgba(255, 255, 255, 0.92);
   --glass-border: rgba(0, 0, 0, 0.06);
   --glass-border-hover: rgba(0, 0, 0, 0.12);
   --glass-shine: linear-gradient(135deg, rgba(255,255,255,0.5) 0%, transparent 50%);
-  --text-primary: hsl(210, 10%, 15%);
-  --text-secondary: hsl(215, 10%, 45%);
-  --text-muted: hsl(215, 10%, 60%);
-  --text-ghost: hsl(215, 8%, 80%);
+  --text-primary: hsl(210, 15%, 8%);
+  --text-secondary: hsl(215, 15%, 28%);
+  --text-muted: hsl(215, 12%, 42%);
+  --text-ghost: hsl(215, 10%, 60%);
   --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
   --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }

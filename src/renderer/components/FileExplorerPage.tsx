@@ -127,7 +127,9 @@ export function FileExplorerPage() {
     const oa = driveOrder[a.drive_type || ''] || 9
     const ob = driveOrder[b.drive_type || ''] || 9
     if (oa !== ob) return oa - ob
-    return (a.name || '').localeCompare(b.name || '')
+    const la = (a.name || '').replace(':', '')
+    const lb = (b.name || '').replace(':', '')
+    return la.localeCompare(lb)
   })
 
   return (
