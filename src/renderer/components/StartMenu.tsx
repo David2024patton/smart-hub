@@ -73,15 +73,15 @@ export function StartMenu() {
           return (
             <div key={group}>
               <p className="text-[10px] uppercase tracking-wider font-semibold px-2 py-1.5"
-                style={{ color: 'var(--text-ghost)' }}>
+                style={{ color: 'var(--text-muted)' }}>
                 {group}
               </p>
               {items.map(item => (
                 <button
                   key={item.id}
-                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs cursor-pointer transition-colors hover:bg-white/[0.04]"
+                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs cursor-pointer transition-colors hover:bg-white/[0.06]"
                   style={{
-                    color: isOpen(item.id) ? 'var(--accent)' : 'var(--text-secondary)',
+                    color: isOpen(item.id) ? 'var(--accent)' : 'var(--text-primary)',
                     background: isOpen(item.id) ? 'var(--accent-subtle)' : 'var(--bg-surface)',
                   }}
                   onClick={() => handleClick(item.id)}
