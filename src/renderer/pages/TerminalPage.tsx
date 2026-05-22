@@ -57,7 +57,15 @@ function createPane(shell: string, profile: TermProfile, sessionId = ''): TermPa
 
 function connectTerminal(pane: TermPane): TermPane {
   const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:'
-  const ws = new WebSocket(`${protocol}//${location.host}/ws/terminal?shell=${encodeURIComponent(pane.shell)}&cols=${pane.terminal.cols}&rows=${pane.terminal.rows}&resume=${encodeURIComponent(pane.sessionId)}`)
+  // Extract WSL distro from shell string if present
+  let shell = pane.shell
+  let wslParam = ''
+  const wslMatch = shell.match(/^wsl\.exe\s+-d\s+(.+)$/i)
+  if (wslMatch) {
+    wslParam = `&wsl=${encodeURIComponent(wslMatch[1].trim())}`
+    shell = 'wsl.exe'
+  }
+  const ws = new WebSocket(`${protocol}//${location.host}/ws/terminal?shell=${encodeURIComponent(shell)}&cols=${pane.terminal.cols}&rows=${pane.terminal.rows}&resume=${encodeURIComponent(pane.sessionId)}${wslParam}`)
   ws.onopen = () => { pane.terminal.clear(); pane.terminal.focus() }
   ws.onmessage = (event) => {
     try {

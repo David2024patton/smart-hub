@@ -90,9 +90,12 @@ function fsApiPlugin() {
         } else {
           const id = resumeId || `term-${++termIdCounter}`
           session = { id, type: 'local', shell, proc: null, buf: [], watchers: new Set([ws]) }
-          const shellArgs = params.get('shell')?.split(' ') || []
+        const shellArgs = params.get('shell')?.split(' ') || []
           const shellCmd = shellArgs[0] || (os.platform() === 'win32' ? 'cmd.exe' : '/bin/bash')
-          const shellParams = shellArgs.slice(1)
+          const wslDistro = params.get('wsl') || ''
+          let shellParams = shellArgs.slice(1)
+          // Handle WSL with distro (preserves spaces in distro names)
+          if (shellCmd === 'wsl.exe' && wslDistro) shellParams = ['-d', wslDistro]
           let proc: any
           try {
             proc = pty.spawn(shellCmd, shellParams, { name: 'xterm-256color', cols, rows, useConpty: true })
