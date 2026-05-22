@@ -7,6 +7,7 @@ import os from 'os';
 import { execSync } from 'child_process';
 import { WebSocketServer } from 'ws';
 import pty from 'node-pty';
+import { Client } from 'ssh2';
 import tailwindcss from '@tailwindcss/vite';
 
 // https://vitejs.dev/config/
@@ -49,8 +50,22 @@ function fsApiPlugin() {
     configureServer(server: any) {
       // Terminal WebSocket — uses noServer to avoid conflicting with Vite's HMR WebSocket
       const termWss = new WebSocketServer({ noServer: true })
-      const terminals = new Map<string, { proc: any; shell: string }>()
+      const MAX_BUF = 500
+      interface TermSession {
+        id: string; type: 'local' | 'ssh'; shell?: string; proc?: any; ssh?: any; stream?: any
+        buf: string[]; watchers: Set<any>
+      }
+      const sessions = new Map<string, TermSession>()
       let termIdCounter = 0
+
+      function broadcast(session: TermSession, data: string) {
+        const encoded = Buffer.from(data).toString('base64')
+        session.buf.push(encoded)
+        if (session.buf.length > MAX_BUF) session.buf.shift()
+        for (const ws of session.watchers) {
+          try { ws.send(JSON.stringify({ type: 'output', id: session.id, data: encoded })) } catch {}
+        }
+      }
 
       server.httpServer.on('upgrade', (req: any, socket: any, head: any) => {
         if (req.url?.startsWith('/ws/terminal')) {
@@ -65,27 +80,82 @@ function fsApiPlugin() {
         const shell = params.get('shell') || (os.platform() === 'win32' ? 'cmd.exe' : '/bin/bash')
         const cols = parseInt(params.get('cols') || '80')
         const rows = parseInt(params.get('rows') || '24')
-        const id = `term-${++termIdCounter}`
-        let proc: any
-        try {
-          proc = pty.spawn(shell, [], { name: 'xterm-256color', cols, rows, useConpty: true })
-        } catch {
-          ws.close()
-          return
+        const resumeId = params.get('resume') || ''
+        let session: TermSession
+
+        // Resume existing session or create new
+        if (resumeId && sessions.has(resumeId)) {
+          session = sessions.get(resumeId)!
+          session.watchers.add(ws)
+          ws.send(JSON.stringify({ type: 'init', id: session.id }))
+          // Replay output buffer
+          for (const data of session.buf) {
+            ws.send(JSON.stringify({ type: 'output', id: session.id, data }))
+          }
+        } else {
+          const id = resumeId || `term-${++termIdCounter}`
+          session = { id, type: 'local', shell, proc: null, buf: [], watchers: new Set([ws]) }
+          try {
+            const proc = pty.spawn(shell, [], { name: 'xterm-256color', cols, rows, useConpty: true })
+            session.proc = proc
+            sessions.set(id, session)
+          } catch { ws.close(); return }
+          ws.send(JSON.stringify({ type: 'init', id }))
+          proc.onData((data: string) => broadcast(session, data))
+          proc.onExit((ev: { exitCode: number }) => {
+            for (const w of session.watchers) try { w.send(JSON.stringify({ type: 'exit', id, code: ev.exitCode })) } catch {}
+            sessions.delete(id)
+          })
         }
-        terminals.set(id, { proc, shell })
-        ws.send(JSON.stringify({ type: 'init', id }))
-        proc.onData((data: string) => { ws.send(JSON.stringify({ type: 'output', id, data: Buffer.from(data).toString('base64') })) })
-        proc.onExit((ev: { exitCode: number }) => { ws.send(JSON.stringify({ type: 'exit', id, code: ev.exitCode })); terminals.delete(id) })
+
         ws.on('message', (raw: string) => {
           try {
             const msg = JSON.parse(raw.toString())
-            if (msg.type === 'stdin' && msg.data) proc.write(Buffer.from(msg.data, 'base64').toString('utf-8'))
-            if (msg.type === 'resize' && msg.cols && msg.rows) proc.resize(msg.cols, msg.rows)
-            if (msg.type === 'kill') proc.kill()
+            if (msg.type === 'stdin' && msg.data) {
+              if (session.type === 'ssh' && session.stream) session.stream.write(Buffer.from(msg.data, 'base64').toString('utf-8'))
+              else if (session.proc) session.proc.write(Buffer.from(msg.data, 'base64').toString('utf-8'))
+            }
+            if (msg.type === 'resize' && msg.cols && msg.rows) {
+              if (session.proc) session.proc.resize(msg.cols, msg.rows)
+              if (session.ssh && session.stream) session.stream.setWindow(msg.rows, msg.cols, 0, 0)
+            }
+            if (msg.type === 'kill') {
+              if (session.proc) session.proc.kill()
+              if (session.ssh) session.ssh.end()
+            }
+            // SSH connect
+            if (msg.type === 'ssh-connect' && msg.host) {
+              const ssh = new Client()
+              session.type = 'ssh'
+              session.ssh = ssh
+              ws.send(JSON.stringify({ type: 'info', id: session.id, data: btoa(`Connecting to ${msg.host}:${msg.port || 22}...\r\n`) }))
+              ssh.on('ready', () => {
+                ssh.shell({ term: 'xterm-256color', cols, rows }, (err: any, stream: any) => {
+                  if (err) { ws.send(JSON.stringify({ type: 'info', id: session.id, data: btoa(`SSH shell error: ${err.message}\r\n`) })); return }
+                  session.stream = stream
+                  ws.send(JSON.stringify({ type: 'info', id: session.id, data: btoa(`Connected to ${msg.host}\r\n`) }))
+                  stream.on('data', (d: Buffer) => broadcast(session, d.toString('utf-8')))
+                  stream.stderr.on('data', (d: Buffer) => broadcast(session, d.toString('utf-8')))
+                  stream.on('close', () => {
+                    for (const w of session.watchers) try { w.send(JSON.stringify({ type: 'exit', id: session.id, code: 0 })) } catch {}
+                    sessions.delete(session.id)
+                  })
+                })
+              })
+              ssh.on('error', (err: Error) => {
+                ws.send(JSON.stringify({ type: 'info', id: session.id, data: btoa(`SSH error: ${err.message}\r\n`) }))
+              })
+              ssh.connect({ host: msg.host, port: msg.port || 22, username: msg.username, password: msg.password, readyTimeout: 10000 })
+            }
           } catch {}
         })
-        ws.on('close', () => { try { proc.kill() } catch {}; terminals.delete(id) })
+        ws.on('close', () => {
+          session.watchers.delete(ws)
+          if (session.watchers.size === 0 && session.type === 'ssh') {
+            if (session.ssh) session.ssh.end()
+            sessions.delete(session.id)
+          }
+        })
       })
 
       server.middlewares.use((req: any, res: any, next: any) => {
