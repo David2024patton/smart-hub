@@ -123,36 +123,36 @@ export function FileExplorerPage() {
   })
 
   return (
-    <div className="flex h-full" style={{ background: '#0d1117' }}>
+    <div className="flex h-full" style={{ background: 'var(--bg-deep)' }}>
       {/* Sidebar */}
       {sidebarOpen && (
-        <div className="flex flex-col shrink-0 overflow-y-auto" style={{ width: 220, background: '#0d1117', borderRight: '1px solid #21262d' }}>
-          <div className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wider" style={{ color: '#8b949e' }}>Quick Access</div>
+        <div className="flex flex-col shrink-0 overflow-y-auto" style={{ width: 220, background: 'var(--bg-deep)', borderRight: '1px solid var(--glass-border)' }}>
+          <div className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Quick Access</div>
           {volumes.filter(v => v.type === 'folder').map(v => (
             <button key={v.name} onClick={() => navigateTo(v.path || '')}
               className="flex items-center gap-2 px-3 py-1.5 text-xs cursor-pointer hover:bg-white/[0.03] transition-colors text-left"
-              style={{ color: '#c9d1d9' }}>
+              style={{ color: 'var(--text-primary)' }}>
               <span>{FOLDER_ICONS[v.name.toLowerCase()] || '📁'}</span>
               <span className="truncate">{v.name}</span>
             </button>
           ))}
-          <div className="px-3 py-2 mt-2 text-[11px] font-semibold uppercase tracking-wider" style={{ color: '#8b949e' }}>Drives</div>
+          <div className="px-3 py-2 mt-2 text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Drives</div>
           {volumes.filter(v => v.type === 'drive').map(v => (
             <button key={v.name} onClick={() => navigateTo(v.mount_point || v.name + '\\')}
               className="flex items-center gap-2 px-3 py-1.5 text-xs cursor-pointer hover:bg-white/[0.03] transition-colors text-left"
-              style={{ color: '#c9d1d9' }}>
+              style={{ color: 'var(--text-secondary)' }}>
               <span>💾</span>
               <div className="flex-1 min-w-0">
-                <div className="truncate">{v.label || v.name}</div>
+                <div className="truncate" style={{ color: 'var(--text-primary)' }}>{v.label || v.name}</div>
                 {v.total_gb ? (
                   <div className="flex items-center gap-1 mt-0.5">
-                    <div className="h-1 flex-1 rounded-full" style={{ background: '#21262d' }}>
+                    <div className="h-1 flex-1 rounded-full" style={{ background: 'var(--glass-border)' }}>
                       <div className="h-full rounded-full" style={{
                         width: `${diskUsagePercent(v.total_gb, v.available_gb || 0)}%`,
-                        background: (v.available_gb || 0) < v.total_gb * 0.1 ? '#f85149' : '#238636',
+                        background: (v.available_gb || 0) < v.total_gb * 0.1 ? 'var(--rose)' : 'var(--accent)',
                       }} />
                     </div>
-                    <span className="text-[10px]" style={{ color: '#8b949e' }}>{v.total_gb} GB</span>
+                    <span className="text-[10px]" style={{ color: 'var(--text-ghost)' }}>{v.total_gb} GB</span>
                   </div>
                 ) : null}
               </div>
@@ -164,18 +164,18 @@ export function FileExplorerPage() {
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Toolbar */}
-        <div className="flex items-center gap-2 px-3 py-1.5 shrink-0" style={{ background: '#161b22', borderBottom: '1px solid #21262d', minHeight: 36 }}>
-          <button onClick={() => setSidebarOpen(v => !v)} className="px-1.5 py-0.5 rounded text-xs cursor-pointer hover:bg-white/10" style={{ color: '#8b949e' }} data-tooltip="Toggle sidebar">☰</button>
-          <button onClick={() => navigateTo('')} className="px-1.5 py-0.5 rounded text-xs cursor-pointer hover:bg-white/10" style={{ color: '#8b949e' }} data-tooltip="Show drives">🏠</button>
+        <div className="flex items-center gap-2 px-3 py-1.5 shrink-0" style={{ background: 'var(--bg-surface)', borderBottom: '1px solid var(--glass-border)', minHeight: 36 }}>
+          <button onClick={() => setSidebarOpen(v => !v)} className="px-1.5 py-0.5 rounded text-xs cursor-pointer hover:bg-white/10" style={{ color: 'var(--text-muted)' }} data-tooltip="Toggle sidebar">☰</button>
+          <button onClick={() => navigateTo('')} className="px-1.5 py-0.5 rounded text-xs cursor-pointer hover:bg-white/10" style={{ color: 'var(--text-muted)' }} data-tooltip="Show drives">🏠</button>
           {currentPath && (
             <>
-              <button onClick={() => navigateTo(currentPath.split('\\').slice(0, -1).join('\\') || currentPath.slice(0, 2) + '\\')} className="px-1.5 py-0.5 rounded text-xs cursor-pointer hover:bg-white/10" style={{ color: '#8b949e' }} data-tooltip="Go up">▲</button>
-              <span className="text-xs font-mono truncate max-w-[400px]" style={{ color: '#8b949e' }}>{currentPath}</span>
+              <button onClick={() => navigateTo(currentPath.split('\\').slice(0, -1).join('\\') || currentPath.slice(0, 2) + '\\')} className="px-1.5 py-0.5 rounded text-xs cursor-pointer hover:bg-white/10" style={{ color: 'var(--text-muted)' }} data-tooltip="Go up">▲</button>
+              <span className="text-xs font-mono truncate max-w-[400px]" style={{ color: 'var(--text-muted)' }}>{currentPath}</span>
             </>
           )}
           <div className="flex-1" />
           {viewMode === 'files' && (
-            <div className="flex items-center gap-1 text-[10px]" style={{ color: '#8b949e' }}>
+            <div className="flex items-center gap-1 text-[10px]" style={{ color: 'var(--text-muted)' }}>
               <button onClick={() => { setSortField('name'); setSortDir(d => d === 'asc' ? 'desc' : 'asc') }} className="px-1.5 py-0.5 rounded cursor-pointer hover:bg-white/10" data-tooltip="Sort by name">Name {sortField === 'name' ? (sortDir === 'asc' ? '↑' : '↓') : ''}</button>
               <button onClick={() => { setSortField('size'); setSortDir(d => d === 'asc' ? 'desc' : 'asc') }} className="px-1.5 py-0.5 rounded cursor-pointer hover:bg-white/10" data-tooltip="Sort by size">Size {sortField === 'size' ? (sortDir === 'asc' ? '↑' : '↓') : ''}</button>
               <button onClick={() => { setSortField('modified'); setSortDir(d => d === 'asc' ? 'desc' : 'asc') }} className="px-1.5 py-0.5 rounded cursor-pointer hover:bg-white/10" data-tooltip="Sort by date">Date {sortField === 'modified' ? (sortDir === 'asc' ? '↑' : '↓') : ''}</button>
@@ -184,31 +184,31 @@ export function FileExplorerPage() {
         </div>
 
         {/* Content area */}
-        {loading && <div className="flex-1 flex items-center justify-center text-xs" style={{ color: '#8b949e' }}>Loading...</div>}
+        {loading && <div className="flex-1 flex items-center justify-center text-xs" style={{ color: 'var(--text-muted)' }}>Loading...</div>}
 
-        {error && <div className="p-3 text-xs" style={{ color: '#f85149', background: '#161b22', borderBottom: '1px solid #21262d' }}>⚠ {error}</div>}
+        {error && <div className="p-3 text-xs" style={{ color: 'var(--rose)', background: 'var(--bg-surface)', borderBottom: '1px solid var(--glass-border)' }}>⚠ {error}</div>}
 
         {viewMode === 'drives' && !loading && (
           <div className="flex-1 overflow-y-auto p-4">
-            <div className="text-sm font-semibold mb-3" style={{ color: '#c9d1d9' }}>This PC</div>
+            <div className="text-sm font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>This PC</div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {volumes.filter(v => v.type === 'drive').map(v => (
                 <button key={v.name} onClick={() => navigateTo(v.mount_point || v.name + '\\')}
                   className="flex items-center gap-3 p-3 rounded-lg text-left cursor-pointer transition-all hover:bg-white/[0.03]"
-                  style={{ background: '#161b22', border: '1px solid #21262d' }}>
+                  style={{ background: 'var(--bg-elevated)', border: '1px solid var(--glass-border)' }}>
                   <span className="text-2xl">💾</span>
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium truncate" style={{ color: '#c9d1d9' }}>{v.label || v.name}</div>
-                    <div className="text-[11px]" style={{ color: '#8b949e' }}>{v.name} — {v.total_gb ? `${v.total_gb} GB` : ''}</div>
+                    <div className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>{v.label || v.name}</div>
+                    <div className="text-[11px]" style={{ color: 'var(--text-muted)' }}>{v.name} — {v.total_gb ? `${v.total_gb} GB` : ''}</div>
                     {v.total_gb ? (
                       <div className="flex items-center gap-2 mt-1">
-                        <div className="h-1.5 flex-1 rounded-full" style={{ background: '#21262d' }}>
+                        <div className="h-1.5 flex-1 rounded-full" style={{ background: 'var(--glass-border)' }}>
                           <div className="h-full rounded-full" style={{
                             width: `${diskUsagePercent(v.total_gb, v.available_gb || 0)}%`,
-                            background: (v.available_gb || 0) < v.total_gb * 0.1 ? '#f85149' : '#238636',
+                            background: (v.available_gb || 0) < v.total_gb * 0.1 ? 'var(--rose)' : 'var(--accent)',
                           }} />
                         </div>
-                        <span className="text-[10px] whitespace-nowrap" style={{ color: '#8b949e' }}>
+                        <span className="text-[10px] whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>
                           {v.available_gb} GB free of {v.total_gb} GB
                         </span>
                       </div>
@@ -221,18 +221,18 @@ export function FileExplorerPage() {
         )}
 
         {viewMode === 'files' && !loading && (
-          <div className="flex-1 overflow-y-auto" style={{ background: '#0d1117' }}>
+          <div className="flex-1 overflow-y-auto" style={{ background: 'var(--bg-deep)' }}>
             <table className="w-full" style={{ borderCollapse: 'collapse' }}>
               <thead>
-                <tr style={{ background: '#161b22', position: 'sticky', top: 0 }}>
-                  <th className="text-left px-3 py-1.5 text-[11px] font-medium" style={{ color: '#8b949e', borderBottom: '1px solid #21262d', width: 28 }}></th>
-                  <th className="text-left px-1 py-1.5 text-[11px] font-medium cursor-pointer hover:bg-white/[0.02]" style={{ color: '#8b949e', borderBottom: '1px solid #21262d' }} onClick={() => { setSortField('name'); setSortDir(d => d === 'asc' ? 'desc' : 'asc') }}>
+                <tr style={{ background: 'var(--bg-surface)', position: 'sticky', top: 0 }}>
+                  <th className="text-left px-3 py-1.5 text-[11px] font-medium" style={{ color: 'var(--text-muted)', borderBottom: '1px solid var(--glass-border)', width: 28 }}></th>
+                  <th className="text-left px-1 py-1.5 text-[11px] font-medium cursor-pointer hover:bg-white/[0.02]" style={{ color: 'var(--text-muted)', borderBottom: '1px solid var(--glass-border)' }} onClick={() => { setSortField('name'); setSortDir(d => d === 'asc' ? 'desc' : 'asc') }}>
                     Name {sortField === 'name' ? (sortDir === 'asc' ? ' ↑' : ' ↓') : ''}
                   </th>
-                  <th className="text-right px-3 py-1.5 text-[11px] font-medium cursor-pointer hover:bg-white/[0.02]" style={{ color: '#8b949e', borderBottom: '1px solid #21262d', width: 80 }} onClick={() => { setSortField('size'); setSortDir(d => d === 'asc' ? 'desc' : 'asc') }}>
+                  <th className="text-right px-3 py-1.5 text-[11px] font-medium cursor-pointer hover:bg-white/[0.02]" style={{ color: 'var(--text-muted)', borderBottom: '1px solid var(--glass-border)', width: 80 }} onClick={() => { setSortField('size'); setSortDir(d => d === 'asc' ? 'desc' : 'asc') }}>
                     Size {sortField === 'size' ? (sortDir === 'asc' ? '↑' : '↓') : ''}
                   </th>
-                  <th className="text-right px-3 py-1.5 text-[11px] font-medium cursor-pointer hover:bg-white/[0.02]" style={{ color: '#8b949e', borderBottom: '1px solid #21262d', width: 160 }} onClick={() => { setSortField('modified'); setSortDir(d => d === 'asc' ? 'desc' : 'asc') }}>
+                  <th className="text-right px-3 py-1.5 text-[11px] font-medium cursor-pointer hover:bg-white/[0.02]" style={{ color: 'var(--text-muted)', borderBottom: '1px solid var(--glass-border)', width: 160 }} onClick={() => { setSortField('modified'); setSortDir(d => d === 'asc' ? 'desc' : 'asc') }}>
                     Date modified {sortField === 'modified' ? (sortDir === 'asc' ? '↑' : '↓') : ''}
                   </th>
                 </tr>
@@ -240,34 +240,34 @@ export function FileExplorerPage() {
               <tbody>
                 {sorted.map(entry => (
                   <tr key={entry.path} className="hover:bg-white/[0.02] cursor-pointer" onClick={() => openPreview(entry)} onDoubleClick={() => { if (entry.is_dir) navigateTo(entry.path) }}>
-                    <td className="px-3 py-0.5 text-center" style={{ borderBottom: '1px solid #21262d' }}>
-                      <span className="inline-flex items-center justify-center w-4 h-4" dangerouslySetInnerHTML={{ __html: fileIcon(entry.extension, entry.is_dir) }} style={{ color: entry.is_dir ? '#58a6ff' : '#8b949e' }} />
+                    <td className="px-3 py-0.5 text-center" style={{ borderBottom: '1px solid var(--glass-border)' }}>
+                      <span className="inline-flex items-center justify-center w-4 h-4" dangerouslySetInnerHTML={{ __html: fileIcon(entry.extension, entry.is_dir) }} style={{ color: entry.is_dir ? 'var(--blue)' : 'var(--text-muted)' }} />
                     </td>
-                    <td className="px-1 py-0.5 text-xs truncate max-w-[300px]" style={{ color: entry.is_dir ? '#58a6ff' : '#c9d1d9', borderBottom: '1px solid #21262d' }}>{entry.name}</td>
-                    <td className="px-3 py-0.5 text-xs text-right font-mono" style={{ color: '#8b949e', borderBottom: '1px solid #21262d' }}>{entry.is_dir ? '—' : formatSize(entry.size)}</td>
-                    <td className="px-3 py-0.5 text-xs text-right font-mono" style={{ color: '#8b949e', borderBottom: '1px solid #21262d' }}>{entry.modified}</td>
+                    <td className="px-1 py-0.5 text-xs truncate max-w-[300px]" style={{ color: entry.is_dir ? 'var(--blue)' : 'var(--text-primary)', borderBottom: '1px solid var(--glass-border)' }}>{entry.name}</td>
+                    <td className="px-3 py-0.5 text-xs text-right font-mono" style={{ color: 'var(--text-muted)', borderBottom: '1px solid var(--glass-border)' }}>{entry.is_dir ? '—' : formatSize(entry.size)}</td>
+                    <td className="px-3 py-0.5 text-xs text-right font-mono" style={{ color: 'var(--text-muted)', borderBottom: '1px solid var(--glass-border)' }}>{entry.modified}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
-            {sorted.length === 0 && <div className="text-center py-8 text-xs" style={{ color: '#8b949e' }}>Empty folder</div>}
+            {sorted.length === 0 && <div className="text-center py-8 text-xs" style={{ color: 'var(--text-muted)' }}>Empty folder</div>}
           </div>
         )}
 
         {viewMode === 'preview' && (
           <div className="flex-1 flex flex-col min-h-0">
-            <div className="flex items-center gap-2 px-3 py-1 shrink-0" style={{ background: '#161b22', borderBottom: '1px solid #21262d' }}>
-              <button onClick={() => setViewMode('files')} className="text-xs px-2 py-0.5 rounded cursor-pointer hover:bg-white/10" style={{ color: '#8b949e' }}>← Back</button>
-              <span className="text-xs font-mono truncate" style={{ color: '#c9d1d9' }}>{previewPath.split('\\').pop()}</span>
+            <div className="flex items-center gap-2 px-3 py-1 shrink-0" style={{ background: 'var(--bg-surface)', borderBottom: '1px solid var(--glass-border)' }}>
+              <button onClick={() => setViewMode('files')} className="text-xs px-2 py-0.5 rounded cursor-pointer hover:bg-white/10" style={{ color: 'var(--text-muted)' }}>← Back</button>
+              <span className="text-xs font-mono truncate" style={{ color: 'var(--text-primary)' }}>{previewPath.split('\\').pop()}</span>
             </div>
             <div className="flex-1 overflow-auto">
               {previewType === 'image' && <img src={previewContent} alt="preview" className="max-w-full object-contain p-2" />}
               {previewType === 'pdf' && <iframe ref={iframeRef} src={previewContent} className="w-full h-full border-0" />}
               {previewType === 'video' && <video controls autoPlay className="max-w-full max-h-full p-2" src={previewContent} />}
               {previewType === 'audio' && <div className="flex items-center justify-center h-full"><audio controls autoPlay src={previewContent} /></div>}
-              {previewType === 'markdown' && <div className="p-4 text-sm leading-relaxed" style={{ color: '#c9d1d9' }}>{renderMarkdown(previewContent)}</div>}
-              {previewType === 'code' && <pre className="p-4 text-sm" style={{ background: '#0d1117' }}><code dangerouslySetInnerHTML={{ __html: previewContent }} /></pre>}
-              {previewType === 'text' && <pre className="p-4 text-sm font-mono whitespace-pre-wrap" style={{ color: '#c9d1d9', background: '#0d1117' }}>{previewContent}</pre>}
+              {previewType === 'markdown' && <div className="p-4 text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{renderMarkdown(previewContent)}</div>}
+              {previewType === 'code' && <pre className="p-4 text-sm" style={{ background: 'var(--bg-deep)' }}><code dangerouslySetInnerHTML={{ __html: previewContent }} /></pre>}
+              {previewType === 'text' && <pre className="p-4 text-sm font-mono whitespace-pre-wrap" style={{ color: 'var(--text-secondary)', background: 'var(--bg-deep)' }}>{previewContent}</pre>}
             </div>
           </div>
         )}
