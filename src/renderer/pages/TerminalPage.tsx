@@ -79,7 +79,7 @@ function connectTerminal(pane: TermPane): TermPane {
   return pane
 }
 
-const ALL_SHELLS = ['cmd.exe', 'powershell.exe', 'pwsh.exe', 'bash', 'sh', 'zsh']
+const ALL_SHELLS = ['cmd.exe', 'powershell.exe', 'pwsh.exe', 'bash', 'sh', 'zsh', 'wsl.exe']
 
 export function TerminalPage() {
   const [config, setConfig] = useState<TermConfig>(loadConfig)
@@ -100,6 +100,8 @@ export function TerminalPage() {
   const [showSerial, setShowSerial] = useState(false)
   const [serialPort, setSerialPort] = useState('COM1')
   const [serialBaud, setSerialBaud] = useState('115200')
+  const [wslDistros, setWslDistros] = useState<string[]>([])
+  const [wslDistro, setWslDistro] = useState('')
   const containerRefs = useRef<Map<string, HTMLDivElement>>(new Map())
 
   const activeProfile = config.profiles.find(p => p.name === config.activeProfile) || config.profiles[0]
@@ -211,6 +213,22 @@ export function TerminalPage() {
   // Initial pane
   useEffect(() => {
     if (panes.length === 0) addPane(activeProfile.shell)
+  }, [])
+
+  // Detect WSL distros
+  useEffect(() => {
+    fetch('/api/hub/wsl').then(r => r.json()).then(data => {
+      if (data.distros?.length) {
+        setWslDistros(data.distros)
+        setWslDistro(data.distros[0])
+        // Add WSL distro profiles
+        const wslProfiles = data.distros.map((d: string) => ({
+          name: `WSL: ${d}`, shell: `wsl.exe -d ${d}`, themeName: 'monokai',
+          fontFamily: 'Cascadia Code, Fira Code, Consolas, monospace', fontSize: 13, opacity: 1,
+        }))
+        persist({ profiles: [...config.profiles, ...wslProfiles.filter((p: any) => !config.profiles.find((x: any) => x.name === p.name))] })
+      }
+    }).catch(() => {})
   }, [])
 
   // Keyboard shortcuts
@@ -425,7 +443,20 @@ export function TerminalPage() {
               <select value={editingProfile.shell} onChange={e => setEditingProfile({ ...editingProfile, shell: e.target.value })}
                 className="w-full px-3 py-1.5 rounded text-xs outline-none"
                 style={{ background: '#1e1e1e', color: '#d4d4d4', border: '1px solid #444' }}>
-                {ALL_SHELLS.map(s => <option key={s} value={s}>{s}</option>)}
+                <optgroup label="Windows">
+                  <option value="cmd.exe">cmd.exe</option>
+                  <option value="powershell.exe">powershell.exe</option>
+                  <option value="pwsh.exe">pwsh.exe</option>
+                </optgroup>
+                <optgroup label="Unix">
+                  <option value="bash">bash</option>
+                  <option value="sh">sh</option>
+                  <option value="zsh">zsh</option>
+                </optgroup>
+                <optgroup label="WSL">
+                  <option value="wsl.exe">WSL (default)</option>
+                  {wslDistros.map(d => <option key={d} value={`wsl.exe -d ${d}`}>WSL: {d}</option>)}
+                </optgroup>
               </select>
               <label className="block text-xs" style={{ color: '#888' }}>Theme</label>
               <select value={editingProfile.themeName} onChange={e => setEditingProfile({ ...editingProfile, themeName: e.target.value })}

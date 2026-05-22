@@ -21,8 +21,9 @@ export interface TermConfig {
 const DEFAULT_PROFILES: TermProfile[] = [
   { name: 'CMD', shell: 'cmd.exe', themeName: 'vs-code-dark', fontFamily: 'Cascadia Code, Fira Code, Consolas, monospace', fontSize: 13, opacity: 1 },
   { name: 'PowerShell', shell: 'powershell.exe', themeName: 'one-dark', fontFamily: 'Cascadia Code, Fira Code, Consolas, monospace', fontSize: 13, opacity: 1 },
-  { name: 'pwsh', shell: 'pwsh.exe', themeName: 'dracula', fontFamily: 'Cascadia Code, Fira Code, Consolas, monospace', fontSize: 13, opacity: 1 },
-  { name: 'Bash', shell: 'bash', themeName: 'nord', fontFamily: 'Cascadia Code, Fira Code, Consolas, monospace', fontSize: 13, opacity: 1 },
+  { name: 'PowerShell Core', shell: 'pwsh.exe', themeName: 'dracula', fontFamily: 'Cascadia Code, Fira Code, Consolas, monospace', fontSize: 13, opacity: 1 },
+  { name: 'Bash (Git)', shell: 'bash', themeName: 'nord', fontFamily: 'Cascadia Code, Fira Code, Consolas, monospace', fontSize: 13, opacity: 1 },
+  { name: 'WSL Default', shell: 'wsl.exe', themeName: 'monokai', fontFamily: 'Cascadia Code, Fira Code, Consolas, monospace', fontSize: 13, opacity: 1 },
 ]
 
 export const DEFAULT_CONFIG: TermConfig = {

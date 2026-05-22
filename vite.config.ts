@@ -90,9 +90,12 @@ function fsApiPlugin() {
         } else {
           const id = resumeId || `term-${++termIdCounter}`
           session = { id, type: 'local', shell, proc: null, buf: [], watchers: new Set([ws]) }
+          const shellArgs = params.get('shell')?.split(' ') || []
+          const shellCmd = shellArgs[0] || (os.platform() === 'win32' ? 'cmd.exe' : '/bin/bash')
+          const shellParams = shellArgs.slice(1)
           let proc: any
           try {
-            proc = pty.spawn(shell, [], { name: 'xterm-256color', cols, rows, useConpty: true })
+            proc = pty.spawn(shellCmd, shellParams, { name: 'xterm-256color', cols, rows, useConpty: true })
             session.proc = proc
             sessions.set(id, session)
           } catch { ws.close(); return }
@@ -277,6 +280,17 @@ function fsApiPlugin() {
           if (endpoint === 'list-elements') {
             sendToBrowser('listElements', {}).then(r => res.end(JSON.stringify({ ok: true, result: r })))
               .catch(err => res.end(JSON.stringify({ ok: false, error: err.message })))
+            return
+          }
+
+          if (endpoint === 'wsl') {
+            try {
+              const out = execSync('wsl.exe -l -q', { encoding: 'utf8', timeout: 5000 })
+              const distros = out.trim().split('\n').map(s => s.trim()).filter(Boolean)
+              res.end(JSON.stringify({ ok: true, distros }))
+            } catch {
+              res.end(JSON.stringify({ ok: true, distros: [] }))
+            }
             return
           }
 
