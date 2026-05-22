@@ -122,6 +122,14 @@ export function FileExplorerPage() {
     return sortDir === 'asc' ? cmp : -cmp
   })
 
+  const driveOrder: Record<string, number> = { 'Local Disk': 1, 'Fixed': 1, 'Removable Disk': 2, 'Removable': 2, 'CD-ROM': 3, 'Network': 4 }
+  const sortedDrives = [...volumes.filter(v => v.type === 'drive')].sort((a, b) => {
+    const oa = driveOrder[a.drive_type || ''] || 9
+    const ob = driveOrder[b.drive_type || ''] || 9
+    if (oa !== ob) return oa - ob
+    return (a.name || '').localeCompare(b.name || '')
+  })
+
   return (
     <div className="flex h-full" style={{ background: 'var(--bg-deep)' }}>
       {/* Sidebar */}
@@ -137,13 +145,13 @@ export function FileExplorerPage() {
             </button>
           ))}
           <div className="px-3 py-2 mt-2 text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Drives</div>
-          {volumes.filter(v => v.type === 'drive').map(v => (
+          {sortedDrives.map(v => (
             <button key={v.name} onClick={() => navigateTo(v.mount_point || v.name + '\\')}
               className="flex items-center gap-2 px-3 py-1.5 text-xs cursor-pointer hover:bg-white/[0.03] transition-colors text-left"
               style={{ color: 'var(--text-secondary)' }}>
               <span>💾</span>
               <div className="flex-1 min-w-0">
-                <div className="truncate" style={{ color: 'var(--text-primary)' }}>{v.label || v.name}</div>
+                <div className="truncate" style={{ color: 'var(--text-primary)' }}>{v.label} ({v.name})</div>
                 {v.total_gb ? (
                   <div className="flex items-center gap-1 mt-0.5">
                     <div className="h-1 flex-1 rounded-full" style={{ background: 'var(--glass-border)' }}>
@@ -192,13 +200,13 @@ export function FileExplorerPage() {
           <div className="flex-1 overflow-y-auto p-4">
             <div className="text-sm font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>This PC</div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {volumes.filter(v => v.type === 'drive').map(v => (
+              {sortedDrives.map(v => (
                 <button key={v.name} onClick={() => navigateTo(v.mount_point || v.name + '\\')}
                   className="flex items-center gap-3 p-3 rounded-lg text-left cursor-pointer transition-all hover:bg-white/[0.03]"
                   style={{ background: 'var(--bg-elevated)', border: '1px solid var(--glass-border)' }}>
                   <span className="text-2xl">💾</span>
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>{v.label || v.name}</div>
+                    <div className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>{v.label} ({v.name})</div>
                     <div className="text-[11px]" style={{ color: 'var(--text-muted)' }}>{v.name} — {v.total_gb ? `${v.total_gb} GB` : ''}</div>
                     {v.total_gb ? (
                       <div className="flex items-center gap-2 mt-1">
