@@ -1,6 +1,10 @@
 import { useRef, useEffect } from 'react'
 import { useDesktop, type DesktopWindow } from '../contexts/DesktopContext'
 
+function isLight() {
+  return typeof document !== 'undefined' && document.documentElement.classList.contains('light-theme')
+}
+
 interface StartItem {
   id: string
   label: string
@@ -61,8 +65,8 @@ export function StartMenu() {
     >
       {/* Header */}
       <div className="px-4 py-3" style={{ background: 'var(--bg-deep)', borderBottom: '1px solid var(--glass-border)' }}>
-        <p className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>Smart Hub</p>
-        <p className="text-[10px] font-mono" style={{ color: 'var(--text-ghost)' }}>v0.1.0-alpha</p>
+        <p className="text-xs font-semibold" style={{ color: isLight() ? '#111' : '#eee' }}>Smart Hub</p>
+        <p className="text-[10px] font-mono" style={{ color: isLight() ? '#555' : '#888' }}>v0.1.0-alpha</p>
       </div>
 
       {/* Items */}
@@ -73,17 +77,19 @@ export function StartMenu() {
           return (
             <div key={group}>
               <p className="text-[10px] uppercase tracking-wider font-semibold px-2 py-1.5"
-                style={{ color: 'var(--text-muted)' }}>
+                style={{ color: isLight() ? '#555' : '#999' }}>
                 {group}
               </p>
               {items.map(item => (
                 <button
                   key={item.id}
-                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs cursor-pointer transition-colors hover:bg-white/[0.06]"
+                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs cursor-pointer transition-colors"
                   style={{
-                    color: isOpen(item.id) ? 'var(--accent)' : 'var(--text-primary)',
-                    background: isOpen(item.id) ? 'var(--accent-subtle)' : 'var(--bg-surface)',
+                    color: isOpen(item.id) ? 'var(--accent)' : (isLight() ? '#111' : '#eee'),
+                    background: isOpen(item.id) ? 'var(--accent-subtle)' : (isLight() ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.02)'),
                   }}
+                  onMouseEnter={(e) => { if (!isOpen(item.id)) (e.currentTarget as HTMLElement).style.background = isLight() ? 'rgba(0,0,0,0.07)' : 'rgba(255,255,255,0.05)' }}
+                  onMouseLeave={(e) => { if (!isOpen(item.id)) (e.currentTarget as HTMLElement).style.background = isLight() ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.02)' }}
                   onClick={() => handleClick(item.id)}
                 >
                   <span className="text-lg">{item.emoji}</span>
@@ -103,7 +109,7 @@ export function StartMenu() {
       {/* Footer */}
       <div className="px-3 py-2" style={{ background: 'var(--bg-deep)', borderTop: '1px solid var(--glass-border)' }}>
         <button className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs cursor-pointer hover:bg-white/5 transition-colors"
-          style={{ color: 'var(--text-muted)' }}
+          style={{ color: isLight() ? '#333' : '#999' }}
           onClick={() => { openWindow('settings'); setStartMenu(false) }}
           data-tooltip="Open settings">
           ⚙️ Settings
