@@ -5,6 +5,7 @@ import { UserProvider, useUser } from './contexts/UserContext'
 import { DesktopProvider } from './contexts/DesktopContext'
 import { OnboardingWizard } from './components/OnboardingWizard'
 import { TooltipManager } from './components/TooltipManager'
+import { HubBridge } from './components/HubBridge'
 import './index.css'
 
 function AppInner() {
@@ -32,6 +33,7 @@ export function App() {
         <DesktopProvider>
           <AppInner />
           <TooltipManager />
+          <HubBridge />
         </DesktopProvider>
       </CompanionProvider>
     </UserProvider>

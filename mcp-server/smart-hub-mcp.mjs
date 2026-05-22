@@ -123,6 +123,83 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
         required: ['command'],
       },
     },
+    {
+      name: 'click_element',
+      description: 'Click a UI element in Smart Hub by CSS selector',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          selector: { type: 'string', description: 'CSS selector for the element (e.g. button, #id, [data-tooltip="Terminal"])' },
+        },
+        required: ['selector'],
+      },
+    },
+    {
+      name: 'type_text',
+      description: 'Type text into an input field in Smart Hub',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          selector: { type: 'string', description: 'CSS selector for the input element' },
+          text: { type: 'string', description: 'Text to type' },
+        },
+        required: ['selector', 'text'],
+      },
+    },
+    {
+      name: 'navigate_page',
+      description: 'Navigate to a page in Smart Hub by page ID (dashboard, terminal, mcp-grid, projects, kanban, marketplace, rag-lab, connections, security, lint, settings, file-explorer)',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          pageId: { type: 'string', description: 'Page ID to navigate to' },
+        },
+        required: ['pageId'],
+      },
+    },
+    {
+      name: 'get_page_state',
+      description: 'Get the current state of Smart Hub: active page, open windows, visible UI elements',
+      inputSchema: { type: 'object', properties: {} },
+    },
+    {
+      name: 'execute_javascript',
+      description: 'Execute arbitrary JavaScript in the Smart Hub browser context',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          code: { type: 'string', description: 'JavaScript code to execute' },
+        },
+        required: ['code'],
+      },
+    },
+    {
+      name: 'get_element_text',
+      description: 'Get the text content of a UI element by CSS selector',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          selector: { type: 'string', description: 'CSS selector for the element' },
+        },
+        required: ['selector'],
+      },
+    },
+    {
+      name: 'open_window',
+      description: 'Open a desktop window by page ID',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          pageId: { type: 'string', description: 'Page ID to open (dashboard, terminal, mcp-grid, file-explorer, settings, etc.)' },
+        },
+        required: ['pageId'],
+      },
+    },
+    {
+      name: 'list_ui_elements',
+      description: 'List all visible interactive UI elements on the current page',
+      inputSchema: { type: 'object', properties: {} },
+    },
   ],
 }))
 
@@ -254,6 +331,64 @@ $graphics.Dispose(); $bmp.Dispose()
             resolve({ content: [{ type: 'text', text: `Error: ${err.message}` }] })
           })
         })
+      }
+
+      case 'click_element': {
+        const data = await hubFetch('/api/hub/click', {
+          method: 'POST',
+          body: JSON.stringify({ selector: args?.selector }),
+        })
+        return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] }
+      }
+
+      case 'type_text': {
+        const data = await hubFetch('/api/hub/type', {
+          method: 'POST',
+          body: JSON.stringify({ selector: args?.selector, text: args?.text }),
+        })
+        return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] }
+      }
+
+      case 'navigate_page': {
+        const data = await hubFetch('/api/hub/navigate', {
+          method: 'POST',
+          body: JSON.stringify({ pageId: args?.pageId }),
+        })
+        return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] }
+      }
+
+      case 'get_page_state': {
+        const data = await hubFetch('/api/hub/state')
+        return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] }
+      }
+
+      case 'execute_javascript': {
+        const data = await hubFetch('/api/hub/eval', {
+          method: 'POST',
+          body: JSON.stringify({ code: args?.code }),
+        })
+        return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] }
+      }
+
+      case 'get_element_text': {
+        const data = await hubFetch('/api/hub/get-text', {
+          method: 'POST',
+          body: JSON.stringify({ selector: args?.selector }),
+        })
+        return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] }
+      }
+
+      case 'open_window': {
+        const data = await hubFetch('/api/hub/open-window', {
+          method: 'POST',
+          body: JSON.stringify({ pageId: args?.pageId }),
+        })
+        return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] }
+      }
+
+      case 'list_ui_elements': {
+        const data = await hubFetch('/api/hub/list-elements')
+        return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] }
       }
 
       default:

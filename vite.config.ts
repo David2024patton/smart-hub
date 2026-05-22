@@ -154,6 +154,140 @@ function fsApiPlugin() {
         })
       })
 
+      // Hub Control WebSocket — bidirectional bridge for AI agent UI automation
+      const hubWss = new WebSocketServer({ noServer: true })
+      let hubBrowser: any = null
+      const pendingCommands = new Map<string, { resolve: (v: any) => void; reject: (e: Error) => void; timer: any }>()
+      let cmdIdCounter = 0
+
+      server.httpServer.on('upgrade', (req: any, socket: any, head: any) => {
+        if (req.url?.startsWith('/ws/hub')) {
+          hubWss.handleUpgrade(req, socket, head, (ws: any) => {
+            hubWss.emit('connection', ws, req)
+          })
+        }
+      })
+
+      hubWss.on('connection', (ws: any) => {
+        hubBrowser = ws
+        ws.on('message', (raw: string) => {
+          try {
+            const msg = JSON.parse(raw.toString())
+            if (msg.type === 'result' && msg.cmdId && pendingCommands.has(msg.cmdId)) {
+              const pc = pendingCommands.get(msg.cmdId)!
+              clearTimeout(pc.timer)
+              pendingCommands.delete(msg.cmdId)
+              pc.resolve(msg.result)
+            }
+            if (msg.type === 'error' && msg.cmdId && pendingCommands.has(msg.cmdId)) {
+              const pc = pendingCommands.get(msg.cmdId)!
+              clearTimeout(pc.timer)
+              pendingCommands.delete(msg.cmdId)
+              pc.reject(new Error(msg.error || 'Unknown error'))
+            }
+          } catch {}
+        })
+        ws.on('close', () => { hubBrowser = null })
+      })
+
+      function sendToBrowser(action: string, payload: any): Promise<any> {
+        return new Promise((resolve, reject) => {
+          if (!hubBrowser) return reject(new Error('No browser connected'))
+          const cmdId = `cmd-${++cmdIdCounter}`
+          const timer = setTimeout(() => {
+            pendingCommands.delete(cmdId)
+            reject(new Error('Command timed out'))
+          }, 15000)
+          pendingCommands.set(cmdId, { resolve, reject, timer })
+          hubBrowser.send(JSON.stringify({ type: 'execute', cmdId, action, payload }))
+        })
+      }
+
+      // Hub Control HTTP API
+      server.middlewares.use((req: any, res: any, next: any) => {
+        if (!req.url || !req.url.startsWith('/api/hub/')) return next()
+        const url = new URL(req.url, 'http://localhost')
+        const endpoint = url.pathname.replace('/api/hub/', '')
+        res.setHeader('Content-Type', 'application/json')
+        res.setHeader('Access-Control-Allow-Origin', '*')
+
+        const body = (cb: (d: any) => void) => {
+          let data = ''
+          req.on('data', (c: string) => data += c)
+          req.on('end', () => { try { cb(JSON.parse(data || '{}')) } catch { cb({}) } })
+        }
+
+        try {
+          if (endpoint === 'ping') { res.end(JSON.stringify({ ok: true, browser: !!hubBrowser })); return }
+
+          if (endpoint === 'state') {
+            sendToBrowser('getState', {}).then(state => res.end(JSON.stringify({ ok: true, state })))
+              .catch(err => res.end(JSON.stringify({ ok: false, error: err.message })))
+            return
+          }
+
+          if (endpoint === 'click') {
+            body(d => {
+              sendToBrowser('click', d).then(r => res.end(JSON.stringify({ ok: true, result: r })))
+                .catch(err => res.end(JSON.stringify({ ok: false, error: err.message })))
+            })
+            return
+          }
+
+          if (endpoint === 'type') {
+            body(d => {
+              sendToBrowser('type', d).then(r => res.end(JSON.stringify({ ok: true, result: r })))
+                .catch(err => res.end(JSON.stringify({ ok: false, error: err.message })))
+            })
+            return
+          }
+
+          if (endpoint === 'navigate') {
+            body(d => {
+              sendToBrowser('navigate', d).then(r => res.end(JSON.stringify({ ok: true, result: r })))
+                .catch(err => res.end(JSON.stringify({ ok: false, error: err.message })))
+            })
+            return
+          }
+
+          if (endpoint === 'eval') {
+            body(d => {
+              sendToBrowser('eval', d).then(r => res.end(JSON.stringify({ ok: true, result: r })))
+                .catch(err => res.end(JSON.stringify({ ok: false, error: err.message })))
+            })
+            return
+          }
+
+          if (endpoint === 'open-window') {
+            body(d => {
+              sendToBrowser('openWindow', d).then(r => res.end(JSON.stringify({ ok: true, result: r })))
+                .catch(err => res.end(JSON.stringify({ ok: false, error: err.message })))
+            })
+            return
+          }
+
+          if (endpoint === 'get-text') {
+            body(d => {
+              sendToBrowser('getText', d).then(r => res.end(JSON.stringify({ ok: true, result: r })))
+                .catch(err => res.end(JSON.stringify({ ok: false, error: err.message })))
+            })
+            return
+          }
+
+          if (endpoint === 'list-elements') {
+            sendToBrowser('listElements', {}).then(r => res.end(JSON.stringify({ ok: true, result: r })))
+              .catch(err => res.end(JSON.stringify({ ok: false, error: err.message })))
+            return
+          }
+
+          res.statusCode = 404
+          res.end(JSON.stringify({ error: 'Unknown hub endpoint' }))
+        } catch (err: any) {
+          res.statusCode = 500
+          res.end(JSON.stringify({ error: err.message }))
+        }
+      })
+
       server.middlewares.use((req: any, res: any, next: any) => {
         if (!req.url || !req.url.startsWith('/api/fs/')) return next()
         const url = new URL(req.url, 'http://localhost')
