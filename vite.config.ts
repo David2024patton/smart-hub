@@ -614,6 +614,16 @@ function fsApiPlugin() {
             return
           }
 
+          if (endpoint === 'weather') {
+            const location = url.searchParams.get('location') || ''
+            const loc = location || 'New York'
+            fetch(`https://wttr.in/${encodeURIComponent(loc)}?format=j1`)
+              .then(r => r.json())
+              .then(data => res.end(JSON.stringify({ ok: true, data })))
+              .catch(err => res.end(JSON.stringify({ ok: false, error: err.message })))
+            return
+          }
+
           if (endpoint === 'disks') {
             const platform = os.platform()
             const diskInfo = platform === 'win32' ? getWindowsDiskInfo() : {}
