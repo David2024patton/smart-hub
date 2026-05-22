@@ -52,6 +52,19 @@ export interface DriveEntry {
   drive_type: string
 }
 
+export interface VolumeEntry {
+  type: 'folder' | 'drive'
+  name: string
+  path?: string
+  label?: string
+  mount_point?: string
+  total_gb?: number
+  available_gb?: number
+  total_space?: number
+  available_space?: number
+  drive_type?: string
+}
+
 export interface SystemInfo {
   os_name: string
   os_version: string
@@ -88,6 +101,12 @@ export async function getDrives(): Promise<DriveEntry[]> {
     return invoke<DriveEntry[]>('get_drives')
   }
   return getMockDrives()
+}
+
+export async function getVolumes(): Promise<VolumeEntry[]> {
+  const backend = await detectBackend()
+  if (backend === 'vite') return viteFetch<VolumeEntry[]>('volumes')
+  return []
 }
 
 export async function getSystemInfo(): Promise<SystemInfo | null> {

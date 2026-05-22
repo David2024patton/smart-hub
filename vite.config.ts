@@ -582,6 +582,55 @@ function fsApiPlugin() {
             return
           }
 
+          if (endpoint === 'volumes') {
+            const platform = os.platform()
+            const result: any[] = []
+            if (platform === 'win32') {
+              const userProfile = process.env.USERPROFILE || ''
+              const homeDrive = process.env.HOMEDRIVE || 'C:'
+              // Quick access folders
+              const quickAccess = [
+                { name: 'Desktop', path: path.join(userProfile, 'Desktop') },
+                { name: 'Downloads', path: path.join(userProfile, 'Downloads') },
+                { name: 'Documents', path: path.join(userProfile, 'Documents') },
+                { name: 'Pictures', path: path.join(userProfile, 'Pictures') },
+                { name: 'Music', path: path.join(userProfile, 'Music') },
+                { name: 'Videos', path: path.join(userProfile, 'Videos') },
+              ]
+              for (const qa of quickAccess) {
+                try { fs.statSync(qa.path); result.push({ type: 'folder', ...qa }) } catch {}
+              }
+              // Drives with volume labels
+              try {
+                const psOut = execSync('powershell -NoProfile "Get-CimInstance Win32_LogicalDisk | Select-Object DeviceID, VolumeName, Size, FreeSpace, DriveType | ConvertTo-Json -Compress"', { encoding: 'utf8', timeout: 5000 })
+                const disks = JSON.parse(psOut.trim())
+                const arr = Array.isArray(disks) ? disks : [disks]
+                for (const d of arr) {
+                  if (!d?.DeviceID) continue
+                  const total = parseInt(d.Size || '0')
+                  const free = parseInt(d.FreeSpace || '0')
+                  const typeMap: Record<number, string> = { 2: 'Local Disk', 3: 'Removable Disk', 5: 'CD-ROM' }
+                  result.push({
+                    type: 'drive',
+                    name: d.DeviceID,
+                    label: d.VolumeName || typeMap[d.DriveType] || 'Local Disk',
+                    mount_point: d.DeviceID + '\\',
+                    total_space: total,
+                    available_space: free,
+                    total_gb: +(total / (1024 ** 3)).toFixed(1),
+                    available_gb: +(free / (1024 ** 3)).toFixed(1),
+                    drive_type: typeMap[d.DriveType] || 'Fixed',
+                  })
+                }
+              } catch {}
+            } else {
+              result.push({ type: 'folder', name: 'Home', path: process.env.HOME || '/root' })
+              result.push({ type: 'drive', name: '/', mount_point: '/' })
+            }
+            res.end(JSON.stringify(result))
+            return
+          }
+
           if (endpoint === 'read') {
             const filePath = url.searchParams.get('path') || ''
             const content = fs.readFileSync(filePath, 'utf-8')
