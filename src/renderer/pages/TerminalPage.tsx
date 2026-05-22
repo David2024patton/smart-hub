@@ -38,7 +38,7 @@ function createTerminal(shell: string): { terminal: Terminal; fitAddon: FitAddon
 
 function connectTerminal(tab: TermTab, onDisconnect: (id: string) => void): TermTab {
   const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:'
-  const ws = new WebSocket(`${protocol}//${location.host}/ws/terminal?shell=${encodeURIComponent(tab.shell)}`)
+  const ws = new WebSocket(`${protocol}//${location.host}/ws/terminal?shell=${encodeURIComponent(tab.shell)}&cols=${tab.terminal.cols}&rows=${tab.terminal.rows}`)
   ws.onopen = () => { tab.terminal.clear(); tab.terminal.focus() }
   ws.onmessage = (event) => {
     try {
@@ -53,6 +53,9 @@ function connectTerminal(tab: TermTab, onDisconnect: (id: string) => void): Term
   }
   tab.terminal.onData((data: string) => {
     if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'stdin', data: btoa(data) }))
+  })
+  tab.terminal.onResize(({ cols, rows }) => {
+    if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'resize', cols, rows }))
   })
   tab.ws = ws
   return tab

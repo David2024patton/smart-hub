@@ -4,8 +4,9 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 import fs from 'fs';
 import os from 'os';
-import { execSync, spawn } from 'child_process';
+import { execSync } from 'child_process';
 import { WebSocketServer } from 'ws';
+import pty from 'node-pty';
 import tailwindcss from '@tailwindcss/vite';
 
 // https://vitejs.dev/config/
@@ -62,24 +63,25 @@ function fsApiPlugin() {
       termWss.on('connection', (ws: any, req: any) => {
         const params = new URL(req.url || '', 'http://localhost').searchParams
         const shell = params.get('shell') || (os.platform() === 'win32' ? 'cmd.exe' : '/bin/bash')
+        const cols = parseInt(params.get('cols') || '80')
+        const rows = parseInt(params.get('rows') || '24')
         const id = `term-${++termIdCounter}`
         let proc: any
         try {
-          proc = spawn(shell, [], { stdio: ['pipe', 'pipe', 'pipe'] })
+          proc = pty.spawn(shell, [], { name: 'xterm-256color', cols, rows, useConpty: true })
         } catch {
           ws.close()
           return
         }
         terminals.set(id, { proc, shell })
         ws.send(JSON.stringify({ type: 'init', id }))
-        proc.stdout.on('data', (data: Buffer) => { ws.send(JSON.stringify({ type: 'output', id, data: data.toString('base64') })) })
-        proc.stderr.on('data', (data: Buffer) => { ws.send(JSON.stringify({ type: 'output', id, data: data.toString('base64') })) })
-        proc.on('error', () => { ws.close(); terminals.delete(id) })
-        proc.on('close', (code: number) => { ws.send(JSON.stringify({ type: 'exit', id, code })); terminals.delete(id) })
+        proc.onData((data: string) => { ws.send(JSON.stringify({ type: 'output', id, data: Buffer.from(data).toString('base64') })) })
+        proc.onExit((ev: { exitCode: number }) => { ws.send(JSON.stringify({ type: 'exit', id, code: ev.exitCode })); terminals.delete(id) })
         ws.on('message', (raw: string) => {
           try {
             const msg = JSON.parse(raw.toString())
-            if (msg.type === 'stdin' && msg.data) proc.stdin.write(Buffer.from(msg.data, 'base64'))
+            if (msg.type === 'stdin' && msg.data) proc.write(Buffer.from(msg.data, 'base64').toString('utf-8'))
+            if (msg.type === 'resize' && msg.cols && msg.rows) proc.resize(msg.cols, msg.rows)
             if (msg.type === 'kill') proc.kill()
           } catch {}
         })
