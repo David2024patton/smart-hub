@@ -638,6 +638,23 @@ function fsApiPlugin() {
             return
           }
 
+          if (endpoint === 'write') {
+            const filePath = url.searchParams.get('path') || ''
+            let body = ''
+            req.on('data', (c: string) => body += c)
+            req.on('end', () => {
+              try {
+                const data = JSON.parse(body)
+                fs.writeFileSync(filePath, data.content || '', 'utf-8')
+                res.end(JSON.stringify({ ok: true }))
+              } catch (err: any) {
+                res.statusCode = 500
+                res.end(JSON.stringify({ error: err.message }))
+              }
+            })
+            return
+          }
+
           if (endpoint === 'read-binary') {
             const filePath = url.searchParams.get('path') || ''
             const data = fs.readFileSync(filePath)

@@ -23,6 +23,7 @@ const START_ITEMS: StartItem[] = [
   { id: 'connections', label: 'Connections', emoji: '🔗', group: 'System' },
   { id: 'security', label: 'Sovereign Shield', emoji: '🛡️', group: 'System' },
   { id: 'lint', label: 'Lint Engine', emoji: '🧹', group: 'Development' },
+  { id: 'code', label: 'Code Editor', emoji: '📝', group: 'Development' },
   { id: 'file-explorer', label: 'File Explorer', emoji: '📂', group: 'System' },
   { id: 'browser', label: 'Web Browser', emoji: '🌐', group: 'System' },
   { id: 'preview', label: 'Project Preview', emoji: '🔍', group: 'Development' },

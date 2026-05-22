@@ -6,10 +6,11 @@ const PAGE_EMOJIS: Record<string, string> = {
   dashboard: '🚀', terminal: '💻', 'mcp-grid': '🕸️', projects: '📁',
   kanban: '📋', marketplace: '🛒', 'rag-lab': '🧠', connections: '🔗',
   security: '🛡️', lint: '🧹', settings: '⚙️', browser: '🌐', preview: '🔍',
+  'file-explorer': '📂', code: '📝',
 }
 
 // Only these pages appear as running apps in the TaskBar
-const TASKBAR_APPS = ['terminal', 'browser', 'file-explorer', 'preview', 'mcp-grid']
+const TASKBAR_APPS = ['terminal', 'browser', 'file-explorer', 'preview', 'mcp-grid', 'code']
 
 export function TaskBar() {
   const { windows, activeWindowId, startMenuOpen, setStartMenu, focusWindow, restoreWindow, minimizeWindow } = useDesktop()

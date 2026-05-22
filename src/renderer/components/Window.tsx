@@ -122,7 +122,7 @@ export function Window({ win, children }: WindowProps) {
     dashboard: '🚀', terminal: '💻', 'mcp-grid': '🕸️', projects: '📁',
     kanban: '📋', marketplace: '🛒', 'rag-lab': '🧠', connections: '🔗',
     security: '🛡️', lint: '🧹', settings: '⚙️', browser: '🌐', preview: '🔍',
-    'file-explorer': '📂',
+    'file-explorer': '📂', code: '📝',
   }
 
   if (win.minimized) return null

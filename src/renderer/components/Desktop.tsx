@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { useDesktop, type DesktopWindow } from '../contexts/DesktopContext'
 import { Window } from './Window'
 import { ProjectsPage } from '../pages/ProjectsPage'
@@ -14,9 +15,31 @@ import { BrowserPage } from './BrowserPage'
 import { PreviewPage } from './PreviewPage'
 import { DashboardContent } from './DashboardContent'
 import { FileExplorerPage } from './FileExplorerPage'
+import { CodeEditor } from './CodeEditor'
 
 export function Desktop() {
-  const { windows } = useDesktop()
+  const { windows, moveWindow } = useDesktop()
+  const desktopRef = useRef<HTMLDivElement>(null)
+
+  // Clamp windows when desktop resizes (e.g. sidebar toggle)
+  useEffect(() => {
+    const el = desktopRef.current
+    if (!el) return
+    const observer = new ResizeObserver(() => {
+      const dw = el.clientWidth
+      const dh = el.clientHeight
+      const P = 14
+      windows.forEach(win => {
+        const clampedX = Math.max(P, Math.min(win.position.x, dw - win.size.width - P))
+        const clampedY = Math.max(P, Math.min(win.position.y, dh - win.size.height - P))
+        if (clampedX !== win.position.x || clampedY !== win.position.y) {
+          moveWindow(win.id, clampedX, clampedY)
+        }
+      })
+    })
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [windows, moveWindow])
 
   const renderContent = (pageId: string) => {
     switch (pageId) {
@@ -34,12 +57,13 @@ export function Desktop() {
       case 'browser': return <BrowserPage />
       case 'preview': return <PreviewPage />
       case 'file-explorer': return <FileExplorerPage />
+      case 'code': return <CodeEditor />
       default: return <div className="p-4 text-sm" style={{ color: 'var(--text-muted)' }}>Page not found</div>
     }
   }
 
   return (
-    <div data-desktop className="relative flex-1 overflow-hidden" style={{ background: 'var(--bg-deep)' }}>
+    <div ref={desktopRef} data-desktop className="relative flex-1 overflow-hidden" style={{ background: 'var(--bg-deep)' }}>
       {/* Desktop background glow */}
       <div className="ambient-glow ambient-glow-tl" />
       <div className="ambient-glow ambient-glow-br" />
