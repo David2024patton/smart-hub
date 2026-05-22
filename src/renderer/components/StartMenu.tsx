@@ -26,7 +26,7 @@ const START_ITEMS: StartItem[] = [
   { id: 'code', label: 'Code Editor', emoji: '📝', group: 'Development' },
   { id: 'file-explorer', label: 'File Explorer', emoji: '📂', group: 'System' },
   { id: 'browser', label: 'Web Browser', emoji: '🌐', group: 'System' },
-  { id: 'search', label: 'Web Search', emoji: '🔎', group: 'System' },
+  { id: 'preview', label: 'Project Preview', emoji: '🔍', group: 'Development' },
   { id: 'preview', label: 'Project Preview', emoji: '🔍', group: 'Development' },
   { id: 'settings', label: 'Settings', emoji: '⚙️', group: 'System' },
 ]

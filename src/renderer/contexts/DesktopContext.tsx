@@ -219,7 +219,6 @@ const PAGE_DEFAULTS: Record<string, string> = {
   preview: 'Project Preview',
   'file-explorer': 'File Explorer',
   code: 'Code Editor',
-  search: 'Web Search',
 }
 
 interface DesktopContextType {

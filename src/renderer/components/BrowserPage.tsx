@@ -73,7 +73,14 @@ export function BrowserPage() {
   const navigate = useCallback((targetUrl?: string) => {
     let target = (targetUrl || url).trim()
     if (!target) return
-    if (!/^https?:\/\//i.test(target)) target = 'https://' + target
+    // If it's not a URL, search via SearXNG (or DuckDuckGo as fallback)
+    if (!/^https?:\/\//i.test(target) && !/^[a-zA-Z][a-zA-Z0-9]*:\/\//.test(target)) {
+      if (/^\w+\.\w+/.test(target) && !target.includes(' ')) {
+        target = 'https://' + target
+      } else {
+        target = `https://html.duckduckgo.com/html?q=${encodeURIComponent(target)}`
+      }
+    }
     const proxyUrl = `/api/proxy/fetch?url=${encodeURIComponent(target)}`
     setLoadedUrl(proxyUrl)
     setHistory(prev => {

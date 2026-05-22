@@ -16,7 +16,6 @@ import { PreviewPage } from './PreviewPage'
 import { DashboardContent } from './DashboardContent'
 import { FileExplorerPage } from './FileExplorerPage'
 import { CodeEditor } from './CodeEditor'
-import { SearchPage } from './SearchPage'
 
 export function Desktop() {
   const { windows, moveWindow } = useDesktop()
@@ -59,7 +58,6 @@ export function Desktop() {
       case 'preview': return <PreviewPage />
       case 'file-explorer': return <FileExplorerPage />
       case 'code': return <CodeEditor />
-      case 'search': return <SearchPage />
       default: return <div className="p-4 text-sm" style={{ color: 'var(--text-muted)' }}>Page not found</div>
     }
   }
