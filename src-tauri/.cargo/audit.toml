@@ -1,0 +1,11 @@
+# cargo-audit configuration for smart-hub's Tauri backend.
+# Read automatically by `cargo audit` when run from src-tauri/
+# (the Security Audit workflow runs it with working-directory: src-tauri).
+
+[advisories]
+# RUSTSEC-2023-0071: Marvin Attack, timing sidechannel in rsa 0.9's
+# PKCS#1 v1.5 decryption (CVE-2023-49092). There is no patched rsa 0.9
+# release, and sqlx-mysql 0.8 (our only rsa consumer, via MySQL auth)
+# still pins rsa ^0.9, so no upgrade path exists today. Risk accepted:
+# this is a local desktop app, not a network-facing TLS terminator.
+ignore = ["RUSTSEC-2023-0071"]
